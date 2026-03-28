@@ -102,6 +102,19 @@ docker build -t layer8:latest .
 docker compose -f deploy/docker-compose.prod.yml up -d
 ```
 
+On every push to `main`, GitHub Actions also publishes a container image to GitHub Container Registry:
+
+```text
+ghcr.io/robs46859-eng/layer8:latest
+ghcr.io/robs46859-eng/layer8:sha-<commit>
+```
+
+Pull it with:
+
+```bash
+docker pull ghcr.io/robs46859-eng/layer8:latest
+```
+
 Baseline Kubernetes manifests are under `deploy/kubernetes/`:
 
 - `namespace.yaml`
