@@ -154,3 +154,38 @@ kubectl apply -k deploy/kubernetes/overlays/production
 Copy the matching `secret.example.yaml` file per environment, replace the placeholder values with real secret references or generated secrets, and apply it separately before the workloads.
 
 These overlays are still starting points. You should point them at managed Postgres, Redis, S3, and SQS endpoints and move all real credential material into your secret manager before using them outside local testing.
+
+## GitHub Deploy Workflows
+
+Deployment automation is split by environment:
+
+- `.github/workflows/deploy-staging.yml`
+- `.github/workflows/deploy-production.yml`
+
+Behavior:
+
+- `Deploy Staging` runs after a successful `CI` workflow on pushes to `main`
+- `Deploy Production` runs after a successful `Release` workflow on version tags
+- both workflows can also be triggered manually from GitHub Actions
+
+Required GitHub Environment setup:
+
+- Environment `staging`
+- Environment `production`
+- Secret `KUBE_CONFIG`
+  - base64-encoded kubeconfig for the target cluster
+- Secret `K8S_SECRET_MANIFEST`
+  - full Kubernetes Secret manifest for `layer8-secrets`
+
+Example kubeconfig secret creation:
+
+```bash
+base64 < ~/.kube/config
+```
+
+The deploy workflows:
+
+- apply the matching Kustomize overlay
+- apply the environment secret manifest from GitHub Secrets
+- update the API and worker deployments to the intended GHCR image tag
+- wait for rollout completion
