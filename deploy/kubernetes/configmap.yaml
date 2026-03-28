@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: layer8-config
+  namespace: layer8
+data:
+  APP_NAME: enterprise-ai-routing-proxy
+  ENVIRONMENT: prod
+  BACKEND_MODE: self_hosted
+  HOST: 0.0.0.0
+  PORT: "8000"
+  AWS_REGION: us-east-1
+  DEFAULT_PROVIDER: mock
+  ENABLE_PROMPT_LOGGING: "false"
+  RATE_LIMIT_REQUESTS_PER_MINUTE: "120"
+  PLUGIN_TIMEOUT_MS: "100"
+  CACHE_TTL_SECONDS: "300"
+  CACHE_S3_THRESHOLD_BYTES: "4096"
+  WORKER_POLL_SECONDS: "5"
+  WORKER_BATCH_SIZE: "5"
+  STARTUP_CHECKS_ENABLED: "true"
+  STARTUP_CHECKS_STRICT: "true"

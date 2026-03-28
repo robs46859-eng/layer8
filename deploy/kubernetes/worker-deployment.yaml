@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: layer8-worker
+  namespace: layer8
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: layer8-worker
+  template:
+    metadata:
+      labels:
+        app: layer8-worker
+    spec:
+      containers:
+        - name: worker
+          image: ghcr.io/robs46859-eng/layer8:latest
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "app.workers.tasks"]
+          envFrom:
+            - configMapRef:
+                name: layer8-config
+            - secretRef:
+                name: layer8-secrets

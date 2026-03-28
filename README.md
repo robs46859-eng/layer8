@@ -23,6 +23,7 @@ The request path is fixed:
 - S3/MinIO cache spillover and SQS-compatible audit publishing
 - Provider adapter interface plus `mock` and OpenAI examples
 - Local self-hosted Docker Compose stack
+- Production-oriented Docker image and deployment manifests
 - Seed/bootstrap script for a local tenant and API key
 - Tests for pipeline order, auth failure, and tenant-scoped caching
 
@@ -91,3 +92,23 @@ The bootstrap script creates:
 - Run a dedicated worker process for audit/archive queue consumption
 - Add admin APIs for tenants, routing policies, and provider accounts
 - Harden plugin isolation beyond in-process execution if untrusted code is allowed
+
+## Deployment
+
+For a containerized deployment path:
+
+```bash
+docker build -t layer8:latest .
+docker compose -f deploy/docker-compose.prod.yml up -d
+```
+
+Baseline Kubernetes manifests are under `deploy/kubernetes/`:
+
+- `namespace.yaml`
+- `configmap.yaml`
+- `secret.example.yaml`
+- `api-deployment.yaml`
+- `api-service.yaml`
+- `worker-deployment.yaml`
+
+These are intentionally thin starting points. Fill in your real secret values, image registry, and managed backing services before using them in production.

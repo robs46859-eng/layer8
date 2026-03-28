@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: layer8-api
+  namespace: layer8
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: layer8-api
+  template:
+    metadata:
+      labels:
+        app: layer8-api
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/robs46859-eng/layer8:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: layer8-config
+            - secretRef:
+                name: layer8-secrets
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 20

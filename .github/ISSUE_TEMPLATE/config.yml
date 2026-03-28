@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Operational question
+    url: https://github.com/robs46859-eng/layer8/discussions
+    about: Use discussions for non-defect operational questions if enabled.
