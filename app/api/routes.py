@@ -1,15 +1,26 @@
 from fastapi import APIRouter, Header, HTTPException, Request, status
 
+from app.core.config import get_settings
 from app.core.pipeline import build_pipeline
 from app.schemas.inference import ErrorResponse, InferenceRequest, InferenceResponse
+from app.services.readiness import ReadinessService
 
 router = APIRouter()
 pipeline = build_pipeline()
+readiness_service = ReadinessService(get_settings())
 
 
 @router.get("/healthz")
 async def healthcheck() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@router.get("/readyz")
+async def readiness() -> dict:
+    result = readiness_service.check()
+    if result["status"] != "ok":
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=result)
+    return result
 
 
 @router.post(

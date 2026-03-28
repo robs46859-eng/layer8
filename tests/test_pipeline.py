@@ -1,7 +1,16 @@
+import os
+
+from app.core.config import get_settings
 from app.services.cache import CacheService, InMemoryCacheStore
 from app.services.context import RequestContext
 from app.core.pipeline import build_pipeline
 from app.schemas.inference import InferenceRequest, Message
+
+
+def build_memory_pipeline():
+    os.environ["BACKEND_MODE"] = "memory"
+    get_settings.cache_clear()
+    return build_pipeline()
 
 
 async def _invoke(pipeline, tenant_key: str, plugin_set: list[str] | None = None):
@@ -20,7 +29,7 @@ async def _invoke(pipeline, tenant_key: str, plugin_set: list[str] | None = None
 def test_pipeline_stage_order():
     import asyncio
 
-    pipeline = build_pipeline()
+    pipeline = build_memory_pipeline()
     response = asyncio.run(_invoke(pipeline, "ak_live_demo.change-me-now", ["prompt-metadata"]))
     assert response.stage_trace == [
         "auth",
@@ -38,7 +47,7 @@ def test_pipeline_stage_order():
 def test_cache_is_tenant_scoped():
     import asyncio
 
-    pipeline = build_pipeline()
+    pipeline = build_memory_pipeline()
     first = asyncio.run(_invoke(pipeline, "ak_live_demo.change-me-now"))
     second = asyncio.run(_invoke(pipeline, "ak_live_demo.change-me-now"))
     assert first.cached is False
@@ -76,7 +85,7 @@ def test_cache_key_partitions_tenants():
 def test_invalid_api_key_fails_closed():
     import asyncio
 
-    pipeline = build_pipeline()
+    pipeline = build_memory_pipeline()
     try:
         asyncio.run(_invoke(pipeline, "ak_live_demo.bad-secret"))
     except PermissionError as exc:
