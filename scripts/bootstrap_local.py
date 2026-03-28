@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 import boto3
 from alembic import command
@@ -43,6 +43,7 @@ def ensure_queue(settings) -> None:
 def seed_database(settings) -> None:
     session_factory = get_session_factory()
     with session_factory() as session:
+        now = datetime.now(UTC).replace(tzinfo=None)
         tenant = session.get(Tenant, "tenant_dev")
         if tenant is None:
             tenant = Tenant(
@@ -50,7 +51,7 @@ def seed_database(settings) -> None:
                 name="Dev Tenant",
                 status="active",
                 data_residency="us",
-                created_at=datetime.utcnow(),
+                created_at=now,
             )
             session.add(tenant)
 
@@ -67,9 +68,10 @@ def seed_database(settings) -> None:
                     scopes=["inference:invoke"],
                     allowed_models=["gpt-4.1-mini", "gpt-4.1", "mock-echo"],
                     status="active",
-                    created_at=datetime.utcnow(),
+                    created_at=now,
                 )
             )
+        session.flush()
 
         if session.get(ProviderAccount, "provider_mock_default") is None:
             session.add(
@@ -79,7 +81,7 @@ def seed_database(settings) -> None:
                     provider_name="mock",
                     credential_ref="inline://mock",
                     status="active",
-                    created_at=datetime.utcnow(),
+                    created_at=now,
                 )
             )
 
@@ -101,7 +103,7 @@ def seed_database(settings) -> None:
                     tenant_id="tenant_dev",
                     policy_name="default",
                     policy_json={"default_provider": settings.default_provider},
-                    created_at=datetime.utcnow(),
+                    created_at=now,
                 )
             )
         session.commit()

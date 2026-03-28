@@ -1,6 +1,6 @@
 # Enterprise AI Routing Proxy
 
-FastAPI scaffold for a tenant-aware AI routing proxy with both a memory-backed dev mode and a self-hosted mode using PostgreSQL, Redis, MinIO/S3, and SQS-compatible queues.
+FastAPI scaffold for a tenant-aware AI routing proxy with both a memory-backed dev mode and a self-hosted mode using PostgreSQL, Redis, MinIO/S3, and an SQS-compatible queue.
 
 The request path is fixed:
 
@@ -63,7 +63,7 @@ POST to `http://localhost:8000/v1/proxy/infer` with:
 - `postgres` for system-of-record data
 - `redis` for rate limits and hot cache metadata
 - `minio` for S3-compatible object storage
-- `localstack` for SQS-compatible queueing
+- `elasticmq` for SQS-compatible queueing
 
 Run migrations and seed data:
 

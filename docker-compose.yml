@@ -37,17 +37,11 @@ services:
     volumes:
       - minio_data:/data
 
-  localstack:
-    image: localstack/localstack:latest
-    environment:
-      SERVICES: sqs
-      AWS_DEFAULT_REGION: us-east-1
+  elasticmq:
+    image: softwaremill/elasticmq-native:1.6.12
     ports:
-      - "4566:4566"
-    volumes:
-      - localstack_data:/var/lib/localstack
+      - "9324:9324"
 
 volumes:
   postgres_data:
   minio_data:
-  localstack_data:
