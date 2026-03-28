@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     plugin_timeout_ms: int = Field(default=100, alias="PLUGIN_TIMEOUT_MS")
     cache_ttl_seconds: int = Field(default=300, alias="CACHE_TTL_SECONDS")
     cache_s3_threshold_bytes: int = Field(default=4096, alias="CACHE_S3_THRESHOLD_BYTES")
+    worker_poll_seconds: int = Field(default=5, alias="WORKER_POLL_SECONDS")
+    worker_batch_size: int = Field(default=5, alias="WORKER_BATCH_SIZE")
     openai_base_url: str = Field(default="https://api.openai.com/v1", alias="OPENAI_BASE_URL")
     openai_api_key: str = Field(default="", alias="OPENAI_API_KEY")
     dev_api_key_prefix: str = Field(default="ak_live_demo", alias="DEV_API_KEY_PREFIX")

@@ -2,7 +2,7 @@ PYTHON := .venv/bin/python
 PIP := .venv/bin/pip
 UVICORN := .venv/bin/uvicorn
 
-.PHONY: venv install test run stack-up stack-down bootstrap migrate setup
+.PHONY: venv install test run worker stack-up stack-down bootstrap migrate setup
 
 venv:
 	python3 -m venv .venv
@@ -15,6 +15,9 @@ test:
 
 run:
 	$(UVICORN) app.main:app --reload
+
+worker:
+	$(PYTHON) -m app.workers.tasks
 
 stack-up:
 	docker compose up -d
