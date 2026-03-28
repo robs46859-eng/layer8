@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     cache_s3_threshold_bytes: int = Field(default=4096, alias="CACHE_S3_THRESHOLD_BYTES")
     worker_poll_seconds: int = Field(default=5, alias="WORKER_POLL_SECONDS")
     worker_batch_size: int = Field(default=5, alias="WORKER_BATCH_SIZE")
+    startup_checks_enabled: bool = Field(default=True, alias="STARTUP_CHECKS_ENABLED")
+    startup_checks_strict: bool = Field(default=False, alias="STARTUP_CHECKS_STRICT")
     openai_base_url: str = Field(default="https://api.openai.com/v1", alias="OPENAI_BASE_URL")
     openai_api_key: str = Field(default="", alias="OPENAI_API_KEY")
     dev_api_key_prefix: str = Field(default="ak_live_demo", alias="DEV_API_KEY_PREFIX")

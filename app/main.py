@@ -1,14 +1,48 @@
+import logging
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from app.api.routes import router
 from app.core.config import get_settings
 from app.core.logging import configure_logging
+from app.services.readiness import ReadinessService
+from app.services.startup import run_startup_checks
+
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    settings = get_settings()
+    readiness_service = ReadinessService(settings)
+    logger.info(
+        {
+            "event": "app_starting",
+            "app_name": settings.app_name,
+            "environment": settings.environment,
+            "backend_mode": settings.backend_mode,
+            "startup_checks_enabled": settings.startup_checks_enabled,
+            "startup_checks_strict": settings.startup_checks_strict,
+        }
+    )
+    if settings.startup_checks_enabled:
+        startup_result = run_startup_checks(settings, readiness_service)
+        app.state.startup_readiness = startup_result
+    else:
+        app.state.startup_readiness = {
+            "status": "skipped",
+            "backend_mode": settings.backend_mode,
+            "checks": {},
+        }
+    yield
+    logger.info({"event": "app_stopping", "app_name": settings.app_name})
 
 
 def create_app() -> FastAPI:
     settings = get_settings()
     configure_logging(settings)
-    app = FastAPI(title=settings.app_name)
+    app = FastAPI(title=settings.app_name, lifespan=lifespan)
     app.include_router(router)
     return app
 
