@@ -130,13 +130,27 @@ That triggers the release workflow, which:
 
 Each published image also carries OCI labels for title, description, vendor, license, revision, and source metadata.
 
-Baseline Kubernetes manifests are under `deploy/kubernetes/`:
+Environment-specific deployment overlays now live under `deploy/`:
 
-- `namespace.yaml`
-- `configmap.yaml`
-- `secret.example.yaml`
-- `api-deployment.yaml`
-- `api-service.yaml`
-- `worker-deployment.yaml`
+- `deploy/env/staging.env.example`
+- `deploy/env/production.env.example`
+- `deploy/kubernetes/base/`
+- `deploy/kubernetes/overlays/staging/`
+- `deploy/kubernetes/overlays/production/`
 
-These are intentionally thin starting points. Fill in your real secret values, image registry, and managed backing services before using them in production.
+The Kubernetes layout is:
+
+- `base/`: shared API, worker, and service manifests
+- `overlays/staging/`: staging namespace, config, replica counts, and secret example
+- `overlays/production/`: production namespace, config, replica counts, and secret example
+
+Render or apply the overlays with:
+
+```bash
+kubectl apply -k deploy/kubernetes/overlays/staging
+kubectl apply -k deploy/kubernetes/overlays/production
+```
+
+Copy the matching `secret.example.yaml` file per environment, replace the placeholder values with real secret references or generated secrets, and apply it separately before the workloads.
+
+These overlays are still starting points. You should point them at managed Postgres, Redis, S3, and SQS endpoints and move all real credential material into your secret manager before using them outside local testing.
