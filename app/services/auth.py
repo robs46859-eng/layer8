@@ -17,6 +17,8 @@ class APIKeyRecord:
     scopes: set[str]
     allowed_models: set[str]
     active: bool = True
+    key_status: str = "active"
+    tenant_status: str = "active"
 
 
 class APIKeyStore(Protocol):
@@ -36,6 +38,8 @@ class InMemoryAPIKeyStore:
             secret_hash=hash_api_secret(settings.dev_api_key_prefix, settings.dev_api_key_secret),
             scopes={"inference:invoke"},
             allowed_models={"gpt-4.1-mini", "gpt-4.1", "mock-echo"},
+            key_status="active",
+            tenant_status="active",
         )
         return cls(records={record.prefix: record})
 
@@ -66,6 +70,8 @@ class PostgresAPIKeyStore:
                 scopes=set(api_key.scopes or []),
                 allowed_models=set(api_key.allowed_models or []),
                 active=api_key.status == "active" and tenant.status == "active",
+                key_status=api_key.status,
+                tenant_status=tenant.status,
             )
 
 
@@ -77,8 +83,12 @@ class AuthService:
         context.stage_trace.append("auth")
         prefix, secret = split_api_key(context.presented_api_key)
         record = await self.store.get_by_prefix(prefix)
-        if record is None or not record.active:
+        if record is None:
             raise PermissionError("unknown or inactive api key")
+        if record.tenant_status != "active":
+            raise PermissionError("tenant is inactive")
+        if record.key_status != "active" or not record.active:
+            raise PermissionError("api key is inactive")
         if not verify_api_secret(record.prefix, secret, record.secret_hash):
             raise PermissionError("invalid api key")
         context.tenant_id = record.tenant_id

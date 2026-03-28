@@ -80,6 +80,44 @@ The bootstrap script creates:
 - the local audit queue
 - a demo tenant and API key in PostgreSQL
 
+## Admin Control Plane
+
+Administrative endpoints are exposed under `/admin` and require a bearer token from `ADMIN_API_TOKEN`.
+
+Set the token in `.env`:
+
+```text
+ADMIN_API_TOKEN=change-admin-token
+```
+
+Example admin requests:
+
+```bash
+curl -X POST http://localhost:8000/admin/tenants \
+  -H "Authorization: Bearer ${ADMIN_API_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"tenant_id":"tenant_alpha","name":"Tenant Alpha","data_residency":"us"}'
+```
+
+```bash
+curl -X POST http://localhost:8000/admin/tenants/tenant_alpha/api-keys \
+  -H "Authorization: Bearer ${ADMIN_API_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"scopes":["inference:invoke"],"allowed_models":["gpt-4.1-mini"]}'
+```
+
+Current control-plane endpoints:
+
+- `POST /admin/tenants`
+- `GET /admin/tenants`
+- `GET /admin/tenants/{tenant_id}`
+- `PATCH /admin/tenants/{tenant_id}`
+- `POST /admin/tenants/{tenant_id}/disable`
+- `GET /admin/tenants/{tenant_id}/api-keys`
+- `POST /admin/tenants/{tenant_id}/api-keys`
+- `POST /admin/api-keys/{key_id}/revoke`
+- `POST /admin/api-keys/{key_id}/rotate`
+
 ## Backend Modes
 
 - `BACKEND_MODE=memory`: in-memory auth/cache/rate-limit stores, intended for tests only

@@ -14,6 +14,10 @@ class Tenant(Base):
     status: Mapped[str] = mapped_column(String(32), default="active")
     data_residency: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+    disabled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
 class APIKey(Base):
@@ -27,6 +31,10 @@ class APIKey(Base):
     allowed_models: Mapped[dict] = mapped_column(JSON, default=list)
     status: Mapped[str] = mapped_column(String(32), default="active")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     tenant: Mapped["Tenant"] = relationship()
 
 

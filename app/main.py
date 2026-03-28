@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app.api.admin import admin_router
 from app.api.routes import router
 from app.core.config import get_settings
 from app.core.logging import configure_logging
@@ -44,6 +45,7 @@ def create_app() -> FastAPI:
     configure_logging(settings)
     app = FastAPI(title=settings.app_name, lifespan=lifespan)
     app.include_router(router)
+    app.include_router(admin_router)
     return app
 
 

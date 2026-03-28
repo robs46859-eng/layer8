@@ -52,6 +52,7 @@ def seed_database(settings) -> None:
                 status="active",
                 data_residency="us",
                 created_at=now,
+                updated_at=now,
             )
             session.add(tenant)
 
@@ -69,6 +70,7 @@ def seed_database(settings) -> None:
                     allowed_models=["gpt-4.1-mini", "gpt-4.1", "mock-echo"],
                     status="active",
                     created_at=now,
+                    updated_at=now,
                 )
             )
         session.flush()
