@@ -115,6 +115,21 @@ Pull it with:
 docker pull ghcr.io/robs46859-eng/layer8:latest
 ```
 
+For tagged releases, push a semantic version tag such as `v0.1.0`:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+That triggers the release workflow, which:
+
+- reruns lint and tests
+- publishes versioned GHCR tags such as `v0.1.0`, `0.1.0`, `0.1`, `0`, and `latest`
+- creates a GitHub Release with generated notes
+
+Each published image also carries OCI labels for title, description, vendor, license, revision, and source metadata.
+
 Baseline Kubernetes manifests are under `deploy/kubernetes/`:
 
 - `namespace.yaml`
