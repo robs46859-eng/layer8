@@ -1,5 +1,6 @@
 from app.core.config import get_settings
 from app.providers.base import ProviderRegistry
+from app.providers.gemini import GeminiProvider
 from app.providers.openai import MockProvider, OpenAIChatProvider
 from app.services.audit import AuditService
 from app.services.auth import AuthService, InMemoryAPIKeyStore, PostgresAPIKeyStore
@@ -71,6 +72,7 @@ def build_pipeline() -> InferencePipeline:
         {
             "mock": MockProvider(),
             "openai": OpenAIChatProvider(settings),
+            "gemini": GeminiProvider(settings),
         }
     )
     if settings.backend_mode == "self_hosted":

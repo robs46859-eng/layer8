@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     startup_checks_strict: bool = Field(default=False, alias="STARTUP_CHECKS_STRICT")
     openai_base_url: str = Field(default="https://api.openai.com/v1", alias="OPENAI_BASE_URL")
     openai_api_key: str = Field(default="", alias="OPENAI_API_KEY")
+    gemini_api_key: str = Field(default="", alias="GEMINI_API_KEY")
     admin_api_token: str = Field(default="", alias="ADMIN_API_TOKEN")
     dev_api_key_prefix: str = Field(default="ak_live_demo", alias="DEV_API_KEY_PREFIX")
     dev_api_key_secret: str = Field(default="change-me-now", alias="DEV_API_KEY_SECRET")
