@@ -81,7 +81,7 @@ def _raise_for(exc: SpatialReasoningError) -> NoReturn:
 @spatial_router.post("/observe", response_model=SpatialObserveOutput)
 async def observe(
     payload: SpatialObserveRequest,
-    auth: APIKeyRecord = Depends(require_spatial_auth),
+    auth: APIKeyRecord = Depends(require_spatial_auth),  # noqa: B008 -- FastAPI DI idiom, ruff false-positive here (see app/api/admin.py for same pre-existing pattern)
 ) -> SpatialObserveOutput:
     settings = get_settings()
     logger.info({"event": "spatial_observe_request", "tenant_id": auth.tenant_id, "image_count": len(payload.referenceImages)})
@@ -94,7 +94,7 @@ async def observe(
 @spatial_router.post("/plan", response_model=SpatialPlanOutput)
 async def plan(
     payload: SpatialPlanRequest,
-    auth: APIKeyRecord = Depends(require_spatial_auth),
+    auth: APIKeyRecord = Depends(require_spatial_auth),  # noqa: B008 -- FastAPI DI idiom, ruff false-positive here (see app/api/admin.py for same pre-existing pattern)
 ) -> SpatialPlanOutput:
     settings = get_settings()
     logger.info({"event": "spatial_plan_request", "tenant_id": auth.tenant_id})
@@ -114,7 +114,7 @@ async def plan(
 @spatial_router.post("/verify", response_model=SpatialVerifyOutput)
 async def verify(
     payload: SpatialVerifyRequest,
-    auth: APIKeyRecord = Depends(require_spatial_auth),
+    auth: APIKeyRecord = Depends(require_spatial_auth),  # noqa: B008 -- FastAPI DI idiom, ruff false-positive here (see app/api/admin.py for same pre-existing pattern)
 ) -> SpatialVerifyOutput:
     settings = get_settings()
     logger.info({"event": "spatial_verify_request", "tenant_id": auth.tenant_id, "image_count": len(payload.draftImages)})
