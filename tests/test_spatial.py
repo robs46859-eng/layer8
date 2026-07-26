@@ -24,7 +24,7 @@ from app.core.config import get_settings
 
 get_settings.cache_clear()
 
-from app.api.spatial import spatial_router  # noqa: E402
+from app.api.spatial import spatial_router
 
 DEV_API_KEY = "ak_live_demo.change-me-now"
 
