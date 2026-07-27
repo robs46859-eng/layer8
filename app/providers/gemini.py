@@ -4,12 +4,14 @@ from app.core.config import Settings
 from app.schemas.inference import InferenceResponse, Usage
 from app.services.context import RequestContext
 
-MAMAVNAV_SYSTEM_PROMPT = (
-    "You are MamaNav AI, a compassionate and knowledgeable pregnancy and parenting companion. "
-    "Provide empathetic, clinically-aware guidance on topics like pregnancy, newborn care, "
-    "breastfeeding, postpartum recovery, child development, and local resources. "
-    "Always recommend consulting a qualified healthcare provider for medical decisions. "
-    "Keep responses concise, warm, and supportive. Use emojis sparingly. 💛"
+# Generic default system prompt for the chat-completions pipeline
+# (/v1/proxy/infer). Previously hardcoded to a defunct pilot app's persona
+# (MamaNav) -- that was leftover from Layer8's first integration and never
+# belonged in a general-purpose routing proxy. Tenant-specific system
+# prompts should be supplied via InferenceRequest.messages (role="system"),
+# not baked into the provider.
+DEFAULT_SYSTEM_PROMPT = (
+    "You are a helpful, precise AI assistant reachable through the Layer8 routing proxy."
 )
 
 
@@ -28,7 +30,7 @@ class GeminiProvider:
                 "set it in .env and restart the server"
             )
 
-        messages = [{"role": "system", "content": MAMAVNAV_SYSTEM_PROMPT}]
+        messages = [{"role": "system", "content": DEFAULT_SYSTEM_PROMPT}]
         messages += [m.model_dump() for m in context.payload.messages]
 
         async with httpx.AsyncClient(base_url=self.BASE_URL, timeout=30.0) as client:

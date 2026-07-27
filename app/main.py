@@ -5,6 +5,7 @@ from fastapi import FastAPI
 
 from app.api.admin import admin_router
 from app.api.routes import router
+from app.api.spatial import spatial_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.services.readiness import ReadinessService
@@ -46,6 +47,7 @@ def create_app() -> FastAPI:
     app = FastAPI(title=settings.app_name, lifespan=lifespan)
     app.include_router(router)
     app.include_router(admin_router)
+    app.include_router(spatial_router)
     return app
 
 
