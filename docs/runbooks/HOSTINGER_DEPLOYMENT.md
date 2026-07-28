@@ -13,7 +13,7 @@ Root directory: apps/web
 Build command: npm run build
 Framework: Other
 Output directory: .next/standalone
-Entry file: apps/web/server.js
+Entry file: server.js
 ```
 
 The Next build emits a self-contained standalone server with traced runtime
