@@ -1,25 +1,33 @@
-import { cp } from "node:fs/promises";
-import { createRequire } from "node:module";
+import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const webRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const require = createRequire(import.meta.url);
-const nodeModulesRoot = path.dirname(
-  path.dirname(require.resolve("next/package.json")),
+const standaloneRoot = path.join(webRoot, ".next", "standalone");
+const standaloneApp = path.join(
+  standaloneRoot,
+  "apps",
+  "web",
 );
+const hostingerRoot = path.join(webRoot, "dist");
 
-await cp(nodeModulesRoot, path.join(webRoot, ".next", "node_modules"), {
+await mkdir(path.join(standaloneApp, ".next"), { recursive: true });
+await cp(path.join(webRoot, "public"), path.join(standaloneApp, "public"), {
   recursive: true,
   force: true,
 });
 await cp(
-  path.join(webRoot, "public"),
-  path.join(webRoot, ".next", "public"),
-  { recursive: true, force: true },
+  path.join(webRoot, ".next", "static"),
+  path.join(standaloneApp, ".next", "static"),
+  {
+    recursive: true,
+    force: true,
+  },
 );
-await cp(
-  path.join(webRoot, "package.json"),
-  path.join(webRoot, ".next", "package.json"),
-  { force: true },
+
+await rm(hostingerRoot, { recursive: true, force: true });
+await cp(standaloneRoot, hostingerRoot, { recursive: true, force: true });
+await writeFile(
+  path.join(hostingerRoot, "server.js"),
+  'require("./apps/web/server.js");\n',
 );
