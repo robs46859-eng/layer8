@@ -15,11 +15,10 @@ Framework: Next.js
 Output directory: .next
 ```
 
-The Next build emits a self-contained standalone server with traced runtime
-dependencies. The post-build preparation step places the traced runtime
-dependencies and public assets inside `.next`, which is the output root
-required by Hostinger's native Next.js runner. It also produces `dist` as a
-portable conventional Next.js runtime bundle.
+The Next build emits a conventional production build. The post-build
+preparation step places the installed runtime dependencies and public assets
+inside `.next`, which is the output root required by Hostinger's native
+Next.js runner.
 
 ## Hostinger environment
 
