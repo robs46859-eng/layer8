@@ -53,3 +53,18 @@ await cp(
   path.join(hostingerRoot, "package.json"),
   { force: true },
 );
+await cp(
+  path.join(standaloneRoot, "node_modules"),
+  path.join(webRoot, ".next", "node_modules"),
+  { recursive: true, force: true },
+);
+await cp(
+  path.join(standaloneApp, "public"),
+  path.join(webRoot, ".next", "public"),
+  { recursive: true, force: true },
+);
+await cp(
+  path.join(webRoot, "package.json"),
+  path.join(webRoot, ".next", "package.json"),
+  { force: true },
+);

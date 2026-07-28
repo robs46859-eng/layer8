@@ -12,13 +12,14 @@ Node.js version: 22
 Root directory: apps/web
 Build command: npm run build
 Framework: Next.js
-Output directory: dist
+Output directory: .next
 ```
 
 The Next build emits a self-contained standalone server with traced runtime
-dependencies. The post-build preparation step also flattens the runtime into
-`dist`, with `.next`, `node_modules`, and `public` at the conventional Next.js
-application root expected by Hostinger's native runner.
+dependencies. The post-build preparation step places the traced runtime
+dependencies and public assets inside `.next`, which is the output root
+required by Hostinger's native Next.js runner. It also produces `dist` as a
+portable conventional Next.js runtime bundle.
 
 ## Hostinger environment
 
