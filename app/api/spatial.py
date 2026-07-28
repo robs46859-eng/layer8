@@ -10,10 +10,8 @@ schema-repair retry loop. If this integration graduates past MVP, revisit
 folding these into the pipeline's before/after plugin hooks rather than
 duplicating rate-limit/audit logic here.
 
-Note: no scope enforcement on the API key yet (v1 only checks the key/tenant
-are active). The dev seed key only grants "inference:invoke". Add a
-"spatial:invoke" scope check here once real tenant keys are provisioned
-for PawsMemories specifically.
+Spatial execution requires an active subscription, the spatial_intelligence
+plan entitlement, and a spatial:invoke API-key scope.
 """
 
 import logging
@@ -33,6 +31,11 @@ from app.schemas.spatial import (
     SpatialVerifyRequest,
 )
 from app.services.auth import APIKeyRecord, InMemoryAPIKeyStore, PostgresAPIKeyStore
+from app.services.entitlements import (
+    BillingAccessError,
+    EntitlementAccessError,
+    enforce_entitlement,
+)
 from app.services.spatial_reasoning import SpatialReasoningError, run_observe, run_plan, run_verify
 
 logger = logging.getLogger(__name__)
@@ -70,6 +73,28 @@ async def require_spatial_auth(x_api_key: str = Header(..., alias="X-API-Key")) 
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="api key is inactive")
     if not verify_api_secret(record.prefix, secret, record.secret_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid api key")
+    try:
+        enforce_entitlement(
+            subscription_status=record.billing_status,
+            payment_grace_ends_at=record.payment_grace_ends_at,
+            entitlements=set(record.billing_entitlements or set()),
+            required_entitlement="spatial_intelligence",
+        )
+    except BillingAccessError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail=str(exc),
+        ) from exc
+    except EntitlementAccessError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        ) from exc
+    if "spatial:invoke" not in record.scopes:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="missing scope spatial:invoke",
+        )
     return record
 
 

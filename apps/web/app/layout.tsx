@@ -1,5 +1,5 @@
-import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import type { Metadata, Viewport } from "next";
 import { Barlow, Barlow_Condensed } from "next/font/google";
 import "./globals.css";
 
@@ -88,18 +88,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const content = <body>{children}</body>;
-
   return (
     <html
       lang="en"
       className={`${barlow.variable} ${barlowCondensed.variable}`}
     >
-      {process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? (
-        <ClerkProvider>{content}</ClerkProvider>
-      ) : (
-        content
-      )}
+      <body>
+        <ClerkProvider>{children}</ClerkProvider>
+      </body>
     </html>
   );
 }

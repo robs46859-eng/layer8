@@ -1,6 +1,7 @@
 import hashlib
 import os
 import time
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock
@@ -127,6 +128,99 @@ def test_subscription_webhook_sync_is_idempotent(tmp_path):
         event_row = session.get(StripeWebhookEvent, "evt_subscription_1")
         assert event_row is not None
         assert event_row.processing_status == "processed"
+
+
+def test_payment_failure_grace_is_bounded_and_cancellation_revokes_access(
+    tmp_path,
+    monkeypatch,
+):
+    engine = create_engine(f"sqlite:///{tmp_path / 'payment-grace.sqlite3'}", future=True)
+    Base.metadata.create_all(engine)
+    settings = SimpleNamespace(
+        stripe_secret_key="sk_test_value",
+        stripe_price_team_monthly="price_team",
+        stripe_price_business_monthly="price_business",
+        billing_past_due_grace_days=3,
+    )
+    failure_at = datetime(2026, 7, 28, 12, 0, 0, tzinfo=UTC).replace(tzinfo=None)
+    monkeypatch.setattr("app.services.billing._utcnow", lambda: failure_at)
+
+    with Session(engine) as session:
+        session.add(Tenant(id="tenant_alpha", name="Tenant Alpha"))
+        session.commit()
+        service = StripeBillingService(session, settings)
+        active_subscription = {
+            "id": "evt_active",
+            "type": "customer.subscription.updated",
+            "livemode": False,
+            "data": {
+                "object": {
+                    "id": "sub_123",
+                    "customer": "cus_123",
+                    "status": "active",
+                    "metadata": {
+                        "tenant_id": "tenant_alpha",
+                        "plan_key": "team",
+                    },
+                    "items": {"data": [{"price": {"id": "price_team"}}]},
+                }
+            },
+        }
+        service.process_event(active_subscription, "a" * 64)
+
+        failed_invoice = {
+            "id": "evt_failed_1",
+            "type": "invoice.payment_failed",
+            "livemode": False,
+            "data": {
+                "object": {
+                    "id": "in_failed_1",
+                    "customer": "cus_123",
+                    "subscription": "sub_123",
+                }
+            },
+        }
+        service.process_event(failed_invoice, "b" * 64)
+        account = session.scalar(
+            select(BillingAccount).where(BillingAccount.tenant_id == "tenant_alpha")
+        )
+        assert account is not None
+        assert account.subscription_status == "past_due"
+        assert account.payment_grace_ends_at == failure_at + timedelta(days=3)
+        assert "api_access" in account.entitlements
+
+        monkeypatch.setattr(
+            "app.services.billing._utcnow",
+            lambda: failure_at + timedelta(days=2),
+        )
+        failed_invoice["id"] = "evt_failed_2"
+        failed_invoice["data"]["object"]["id"] = "in_failed_2"
+        service.process_event(failed_invoice, "c" * 64)
+        session.refresh(account)
+        assert account.payment_grace_ends_at == failure_at + timedelta(days=3)
+
+        canceled_subscription = {
+            "id": "evt_canceled",
+            "type": "customer.subscription.deleted",
+            "livemode": False,
+            "data": {
+                "object": {
+                    "id": "sub_123",
+                    "customer": "cus_123",
+                    "status": "canceled",
+                    "metadata": {
+                        "tenant_id": "tenant_alpha",
+                        "plan_key": "team",
+                    },
+                    "items": {"data": [{"price": {"id": "price_team"}}]},
+                }
+            },
+        }
+        service.process_event(canceled_subscription, "d" * 64)
+        session.refresh(account)
+        assert account.subscription_status == "canceled"
+        assert account.payment_grace_ends_at is None
+        assert account.entitlements == []
 
 
 def test_checkout_uses_allowlisted_price_and_idempotency_key(tmp_path):

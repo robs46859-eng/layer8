@@ -33,6 +33,7 @@ class BillingAccountResponse(BaseModel):
     subscription_status: str
     cancel_at_period_end: bool
     current_period_end: datetime | None
+    payment_grace_ends_at: datetime | None
     entitlements: list[str]
 
 

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { CheckoutNotice } from "@/components/checkout-notice";
 import { ArrowIcon, MarketingPage } from "@/components/marketing-shell";
+import { PilotApplicationForm } from "@/components/pilot-application-form";
 import {
   pageHref,
   seoPageBySlug,
@@ -25,7 +27,7 @@ export async function generateMetadata({
   if (!page) {
     return {};
   }
-  const canonical = `/${page.slug}`;
+  const canonical = `/${page.slug}/`;
   return {
     title: page.title,
     description: page.description,
@@ -61,7 +63,7 @@ function structuredData(page: SeoPage) {
       "@type": "ListItem",
       position: 2,
       name: page.heading,
-      item: `https://salti8.com/${page.slug}`,
+      item: `https://salti8.com/${page.slug}/`,
     },
   ];
   const data: Record<string, unknown>[] = [
@@ -70,7 +72,7 @@ function structuredData(page: SeoPage) {
       "@type": "WebPage",
       name: page.title,
       description: page.description,
-      url: `https://salti8.com/${page.slug}`,
+      url: `https://salti8.com/${page.slug}/`,
       isPartOf: {
         "@type": "WebSite",
         name: "SALTI8",
@@ -112,6 +114,7 @@ export default async function ContentPage({ params }: PageProps) {
   if (!page) {
     notFound();
   }
+  const isPilotPage = page.slug === "pilot";
 
   return (
     <MarketingPage>
@@ -133,10 +136,13 @@ export default async function ContentPage({ params }: PageProps) {
           <h1>{page.heading}</h1>
           <p className="contentLead">{page.lead}</p>
           <div className="contentActions">
-            <a className="button buttonPrimary" href="/pilot">
+            <a
+              className="button buttonPrimary"
+              href={isPilotPage ? "#pilot-application" : "/pilot/"}
+            >
               Request pilot access <ArrowIcon />
             </a>
-            <a className="button buttonSecondary" href="/docs">
+            <a className="button buttonSecondary" href="/docs/">
               Read the documentation
             </a>
           </div>
@@ -144,6 +150,20 @@ export default async function ContentPage({ params }: PageProps) {
             <p className="verifiedDate">Pricing last verified: {page.lastVerified}</p>
           ) : null}
         </header>
+
+        {page.slug === "pricing" ? (
+          <div className="shell">
+            <CheckoutNotice />
+          </div>
+        ) : null}
+
+        {isPilotPage ? (
+          <div className="shell">
+            <PilotApplicationForm
+              apiBaseUrl={process.env.NEXT_PUBLIC_API_URL}
+            />
+          </div>
+        ) : null}
 
         <div className="contentBody shell">
           <aside className="contentRail" aria-label="On this page">

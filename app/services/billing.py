@@ -1,6 +1,6 @@
 import logging
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import stripe
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 ACTIVE_SUBSCRIPTION_STATUSES = {"active", "trialing"}
 
 PLAN_ENTITLEMENTS = {
-    "developer": ["api_access", "community_support"],
+    "developer": ["community_support"],
     "team": [
         "api_access",
         "cascade_execution",
@@ -32,6 +32,7 @@ PLAN_ENTITLEMENTS = {
         "extended_retention",
         "priority_support",
         "sso",
+        "spatial_intelligence",
     ],
 }
 
@@ -248,15 +249,42 @@ class StripeBillingService:
         return self.session.scalar(select(BillingAccount).where(or_(*clauses)))
 
     def _sync_checkout(self, event_type: str, obj: dict[str, Any]) -> None:
-        tenant_id = obj.get("client_reference_id") or obj.get("metadata", {}).get("tenant_id")
+        metadata = obj.get("metadata") or {}
+        tenant_id = obj.get("client_reference_id") or metadata.get("tenant_id")
         if not tenant_id:
             raise ValueError("Stripe Checkout Session is missing tenant metadata")
         account = self._billing_account_for_tenant(tenant_id)
         account.stripe_customer_id = _object_id(obj.get("customer"))
         account.stripe_subscription_id = _object_id(obj.get("subscription"))
+        plan_key = metadata.get("plan_key")
+        if plan_key in PLAN_ENTITLEMENTS:
+            account.plan_key = plan_key
         if event_type == "checkout.session.async_payment_failed":
-            account.subscription_status = "past_due"
+            self._apply_subscription_access(account, "past_due", account.plan_key)
         account.updated_at = _utcnow()
+
+    def _apply_subscription_access(
+        self,
+        account: BillingAccount,
+        status: str,
+        plan_key: str,
+    ) -> None:
+        previous_status = account.subscription_status
+        account.subscription_status = status
+        if status in ACTIVE_SUBSCRIPTION_STATUSES:
+            account.entitlements = PLAN_ENTITLEMENTS.get(plan_key, [])
+            account.payment_grace_ends_at = None
+            return
+        if status == "past_due":
+            if previous_status != "past_due" or account.payment_grace_ends_at is None:
+                grace_days = int(
+                    getattr(self.settings, "billing_past_due_grace_days", 3)
+                )
+                account.payment_grace_ends_at = _utcnow() + timedelta(days=grace_days)
+            account.entitlements = PLAN_ENTITLEMENTS.get(plan_key, [])
+            return
+        account.entitlements = []
+        account.payment_grace_ends_at = None
 
     def _sync_subscription(self, obj: dict[str, Any]) -> None:
         metadata = obj.get("metadata") or {}
@@ -284,14 +312,9 @@ class StripeBillingService:
         account.stripe_subscription_id = subscription_id
         account.stripe_price_id = price_id
         account.plan_key = plan_key
-        account.subscription_status = status
+        self._apply_subscription_access(account, status, plan_key)
         account.cancel_at_period_end = bool(obj.get("cancel_at_period_end"))
         account.current_period_end = _unix_datetime(period_end)
-        account.entitlements = (
-            PLAN_ENTITLEMENTS.get(plan_key, [])
-            if status in ACTIVE_SUBSCRIPTION_STATUSES
-            else PLAN_ENTITLEMENTS["developer"]
-        )
         account.updated_at = _utcnow()
 
     def _sync_invoice(self, event_type: str, obj: dict[str, Any]) -> None:
@@ -314,11 +337,9 @@ class StripeBillingService:
             return
         account.last_invoice_id = obj.get("id")
         if event_type == "invoice.paid":
-            if account.subscription_status not in ACTIVE_SUBSCRIPTION_STATUSES:
-                account.subscription_status = "active"
-            account.entitlements = PLAN_ENTITLEMENTS.get(account.plan_key, [])
+            self._apply_subscription_access(account, "active", account.plan_key)
         elif event_type in {"invoice.payment_failed", "invoice.payment_action_required"}:
-            account.subscription_status = "past_due"
+            self._apply_subscription_access(account, "past_due", account.plan_key)
         account.updated_at = _utcnow()
 
     def _sync_entitlements(self, obj: dict[str, Any]) -> None:

@@ -54,8 +54,8 @@ http://localhost:8000/v1/webhooks/stripe
 
 The self-hosted API expects PostgreSQL, Redis, S3-compatible object storage,
 and an SQS-compatible audit queue. The repository's Docker Compose stack
-provides local versions. Production should use managed services or an
-equivalent Kubernetes deployment.
+provides local versions. Production uses the managed services declared in
+`render.yaml`.
 
 ### AI provider
 

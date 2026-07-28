@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BillingSuccessStatus } from "@/components/billing-success-status";
 import { MarketingPage } from "@/components/marketing-shell";
 
 export const metadata: Metadata = {
@@ -8,6 +9,8 @@ export const metadata: Metadata = {
 };
 
 export default function BillingSuccessPage() {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
+
   return (
     <MarketingPage>
       <section className="contentHero shell compactHero">
@@ -18,9 +21,13 @@ export default function BillingSuccessPage() {
           signed webhook event—not from this browser redirect. Your tenant
           administrator can confirm subscription status in Layer8 Adaptive.
         </p>
-        <a className="button buttonPrimary" href="/app/billing">
-          Return to billing
-        </a>
+        {apiBaseUrl ? (
+          <BillingSuccessStatus apiBaseUrl={apiBaseUrl} />
+        ) : (
+          <div className="authNotice">
+            Subscription verification is awaiting the public API URL.
+          </div>
+        )}
       </section>
     </MarketingPage>
   );

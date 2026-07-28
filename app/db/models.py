@@ -1,9 +1,13 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+
+def _utc_now() -> datetime:
+    return datetime.now(UTC)
 
 
 class Tenant(Base):
@@ -151,6 +155,9 @@ class BillingAccount(Base):
     subscription_status: Mapped[str] = mapped_column(String(32), default="inactive")
     cancel_at_period_end: Mapped[bool] = mapped_column(Boolean, default=False)
     current_period_end: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    payment_grace_ends_at: Mapped[datetime | None] = mapped_column(
+        DateTime, nullable=True
+    )
     entitlements: Mapped[list] = mapped_column(JSON, default=list)
     last_invoice_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -171,3 +178,36 @@ class StripeWebhookEvent(Base):
     last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     processed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class PilotApplication(Base):
+    __tablename__ = "pilot_applications"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    contact_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    work_email: Mapped[str] = mapped_column(String(254), nullable=False)
+    company: Mapped[str] = mapped_column(String(160), nullable=False)
+    role: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    use_case: Mapped[str] = mapped_column(Text, nullable=False)
+    timeline: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    source: Mapped[str] = mapped_column(
+        String(64), nullable=False, default="website-pilot", index=True
+    )
+    status: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="new", index=True
+    )
+    consent_to_contact: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True
+    )
+    consented_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=_utc_now
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=_utc_now
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=_utc_now,
+        onupdate=_utc_now,
+    )

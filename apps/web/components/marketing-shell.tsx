@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { AuthControls } from "@/components/auth-controls";
 
 export function ArrowIcon() {
   return (
@@ -27,16 +28,26 @@ export function MarketingHeader() {
           SALTI<span>8</span>
         </a>
         <span className="productTag">Layer8 Adaptive</span>
-        <nav aria-label="Primary navigation">
-          <a href="/ai-gateway">AI Gateway</a>
-          <a href="/salti-b-engine">SALTI-B</a>
-          <a href="/ai-governance">Governance</a>
-          <a href="/pricing">Pricing</a>
-          <a href="/docs">Docs</a>
+        <nav className="primaryNav" aria-label="Primary navigation">
+          <a href="/ai-gateway/">AI Gateway</a>
+          <a href="/salti-b-engine/">SALTI-B</a>
+          <a href="/ai-governance/">Governance</a>
+          <a href="/pricing/">Pricing</a>
+          <a href="/docs/">Docs</a>
         </nav>
-        <a className="headerAction" href="/sign-in">
-          Customer login <ArrowIcon />
-        </a>
+        <AuthControls />
+        <details className="mobileNav">
+          <summary>Menu</summary>
+          <nav aria-label="Mobile navigation">
+            <a href="/ai-gateway/">AI Gateway</a>
+            <a href="/salti-b-engine/">SALTI-B</a>
+            <a href="/ai-governance/">Governance</a>
+            <a href="/pricing/">Pricing</a>
+            <a href="/docs/">Docs</a>
+            <a href="/sign-in/">Customer login</a>
+            <a href="/sign-up/">Create account</a>
+          </nav>
+        </details>
       </div>
     </header>
   );
@@ -53,12 +64,12 @@ export function MarketingFooter() {
           <p>Industrial precision for governed intelligence.</p>
         </div>
         <div className="footerLinks">
-          <a href="/ai-gateway">AI Gateway</a>
-          <a href="/llm-routing">LLM Routing</a>
-          <a href="/governed-ai-agents">Governed Agents</a>
-          <a href="/human-in-the-loop-ai">Human Oversight</a>
-          <a href="/security">Security</a>
-          <a href="/glossary">Glossary</a>
+          <a href="/ai-gateway/">AI Gateway</a>
+          <a href="/llm-routing/">LLM Routing</a>
+          <a href="/governed-ai-agents/">Governed Agents</a>
+          <a href="/human-in-the-loop-ai/">Human Oversight</a>
+          <a href="/security/">Security</a>
+          <a href="/glossary/">Glossary</a>
         </div>
         <div className="footerMeta">
           <span>Layer8 Adaptive by SALTI8</span>

@@ -3,6 +3,7 @@ from fastapi import APIRouter, Header, HTTPException, Request, status
 from app.core.config import get_settings
 from app.core.pipeline import build_pipeline
 from app.schemas.inference import ErrorResponse, InferenceRequest, InferenceResponse
+from app.services.entitlements import BillingAccessError, EntitlementAccessError
 from app.services.readiness import ReadinessService
 
 router = APIRouter()
@@ -41,6 +42,16 @@ async def infer(
             idempotency_key=x_idempotency_key,
             client_host=request.client.host if request.client else None,
         )
+    except BillingAccessError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail=str(exc),
+        ) from exc
+    except EntitlementAccessError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        ) from exc
     except PermissionError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

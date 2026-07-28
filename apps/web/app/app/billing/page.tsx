@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import { BillingDashboard } from "@/components/billing-dashboard";
+import { MarketingPage } from "@/components/marketing-shell";
+import {
+  businessPriceLabel,
+  teamPriceLabel,
+} from "@/lib/public-pricing";
 
 export const metadata: Metadata = {
   title: "Billing & Entitlements",
@@ -9,15 +12,32 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export const dynamic = "force-dynamic";
+export default function BillingPage() {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
 
-export default async function BillingPage() {
-  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
-    redirect("/sign-in");
+  if (!apiBaseUrl) {
+    return (
+      <MarketingPage>
+        <section className="contentHero shell compactHero">
+          <p className="eyebrow">Customer control plane</p>
+          <h1>Billing is awaiting configuration.</h1>
+          <p className="contentLead">
+            Add the public API URL in Hostinger, then rebuild the site to
+            activate customer billing.
+          </p>
+          <a className="button buttonPrimary" href="/sign-in/">
+            Return to sign in
+          </a>
+        </section>
+      </MarketingPage>
+    );
   }
-  const { userId } = await auth();
-  if (!userId) {
-    redirect("/sign-in");
-  }
-  return <BillingDashboard />;
+
+  return (
+    <BillingDashboard
+      apiBaseUrl={apiBaseUrl}
+      teamPriceLabel={teamPriceLabel}
+      businessPriceLabel={businessPriceLabel}
+    />
+  );
 }

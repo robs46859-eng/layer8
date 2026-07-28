@@ -1,3 +1,8 @@
+import {
+  businessPriceLabel,
+  teamPriceLabel,
+} from "@/lib/public-pricing";
+
 export type ContentSection = {
   heading: string;
   body: string[];
@@ -518,11 +523,11 @@ export const seoPages: SeoPage[] = [
     slug: "pricing",
     title: "Layer8 Adaptive Pricing",
     description:
-      "Review planned Layer8 Adaptive pricing for developers, teams, businesses, and enterprise AI gateway deployments.",
+      "Review Layer8 Adaptive options for development, team, business, and enterprise governed AI gateway deployments.",
     eyebrow: "Transparent platform pricing",
     heading: "Pay for governed execution—not hidden model markup.",
     lead:
-      "Layer8 pricing is being calibrated for private pilots. The intended model combines a predictable platform tier with measured execution, while provider inference remains separately visible.",
+      "Approved Layer8 organizations can activate Team or Business subscriptions through authenticated billing. Platform access and provider inference remain separately visible.",
     keywords: [
       "AI gateway pricing",
       "LLM gateway pricing",
@@ -533,13 +538,14 @@ export const seoPages: SeoPage[] = [
       {
         heading: "Developer",
         body: [
-          "A free development tier is planned for local evaluation, API integration, sandbox workflows, and short-retention observability with conservative execution limits.",
+          "Development access supports API integration, sandbox workflows, and evaluation before a production subscription is activated. Tenant and usage limits are confirmed during onboarding.",
         ],
       },
       {
         heading: "Team and Business",
         body: [
-          "Paid tiers are expected to add production routing, durable cascades, audit export, longer retention, team access, higher limits, and support. Final public prices and included usage will be published only after pilot measurement.",
+          `Team is ${teamPriceLabel}; Business is ${businessPriceLabel}. The authenticated checkout shows the exact recurring charge before payment, and access changes only after the signed Stripe webhook confirms the subscription.`,
+          "Team includes API access, cascade execution, audit export, provider routing, and team support. Business adds extended retention, priority support, and SSO.",
         ],
       },
       {
@@ -553,12 +559,12 @@ export const seoPages: SeoPage[] = [
       {
         question: "Are AI model costs included?",
         answer:
-          "Provider inference costs are intended to remain separately itemized so customers can see model spend rather than receive an opaque blended price.",
+          "Provider inference costs remain separately visible so customers can distinguish model spend from the Layer8 platform subscription.",
       },
       {
         question: "Can I purchase Layer8 Adaptive today?",
         answer:
-          "Private pilot access is being prepared. Live Stripe Checkout will be enabled for approved tenants when product and Price IDs are configured.",
+          "Approved organizations can choose Team or Business from the customer billing screen. Layer8 verifies the signed Stripe webhook before granting paid entitlements.",
       },
     ],
     related: ["pilot", "ai-gateway", "compare/portkey", "compare/litellm"],
@@ -828,5 +834,5 @@ export const seoPages: SeoPage[] = [
 export const seoPageBySlug = new Map(seoPages.map((page) => [page.slug, page]));
 
 export function pageHref(slug: string) {
-  return `/${slug}`;
+  return `/${slug}/`;
 }

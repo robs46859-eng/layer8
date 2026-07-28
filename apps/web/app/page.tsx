@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import Image from "next/image";
+import { MarketingHeader } from "@/components/marketing-shell";
 
 const cascadeSteps = [
   {
@@ -166,24 +167,7 @@ export default function Home() {
         Skip to content
       </a>
 
-      <header className="siteHeader">
-        <div className="shell headerInner">
-          <a className="brand" href="/" aria-label="SALTI8 home">
-            SALTI<span>8</span>
-          </a>
-          <span className="productTag">Layer8 Adaptive</span>
-          <nav aria-label="Primary navigation">
-            <a href="/ai-gateway">AI Gateway</a>
-            <a href="/salti-b-engine">SALTI-B</a>
-            <a href="/ai-governance">Governance</a>
-            <a href="/pricing">Pricing</a>
-            <a href="/docs">Docs</a>
-          </nav>
-          <a className="headerAction" href="/sign-in">
-            Customer login <ArrowIcon />
-          </a>
-        </div>
-      </header>
+      <MarketingHeader />
 
       <main id="main">
         <section className="hero shell">
@@ -329,7 +313,7 @@ export default function Home() {
                 Teams can reconstruct what happened without trusting a
                 screenshot or a model&apos;s memory.
               </p>
-              <a className="textLink" href="/pilot">
+              <a className="textLink" href="/pilot/">
                 Discuss a governed workflow <ArrowIcon />
               </a>
             </div>
@@ -391,7 +375,7 @@ export default function Home() {
               platform teams building multi-provider, agentic, and
               evidence-sensitive systems.
             </p>
-            <a className="button buttonPrimary buttonOnDark" href="/pilot">
+            <a className="button buttonPrimary buttonOnDark" href="/pilot/">
               Request pilot access <ArrowIcon />
             </a>
           </div>

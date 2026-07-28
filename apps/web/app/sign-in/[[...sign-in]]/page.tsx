@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { SignIn } from "@clerk/nextjs";
 import { MarketingPage } from "@/components/marketing-shell";
+import { SignInPanel } from "@/components/sign-in-panel";
 
 export const metadata: Metadata = {
   title: "Customer Sign In",
@@ -8,9 +8,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export const dynamic = "force-dynamic";
-
-export default function SignInPage() {
+export default function CustomerSignInPage() {
   return (
     <MarketingPage>
       <section className="authShell shell">
@@ -22,19 +20,7 @@ export default function SignInPage() {
             self-service billing for your Layer8 Adaptive organization.
           </p>
         </div>
-        {process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? (
-          <SignIn
-            routing="path"
-            path="/sign-in"
-            forceRedirectUrl="/app/billing"
-            signUpUrl="/pilot"
-          />
-        ) : (
-          <div className="authNotice">
-            Customer login is ready for deployment. Add the Clerk environment
-            keys to activate it.
-          </div>
-        )}
+        <SignInPanel />
       </section>
     </MarketingPage>
   );

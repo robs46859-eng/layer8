@@ -1,0 +1,173 @@
+# yaml-language-server: $schema=https://render.com/schema/render.yaml.json
+#
+# First-customer Render Blueprint for the SALTI8 control plane.
+# Host the Next.js marketing/customer frontend separately on Hostinger.
+# Fill every sync:false value in Render before applying this Blueprint.
+
+previews:
+  generation: "off"
+
+envVarGroups:
+  # The API and worker intentionally use one IAM identity for S3 and SQS.
+  - name: salti8-audit-storage
+    envVars:
+      - key: AWS_REGION
+        value: us-east-1
+      - key: S3_BUCKET
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_ENDPOINT_URL
+        sync: false
+      - key: AWS_ENDPOINT_URL
+        sync: false
+      - key: AUDIT_QUEUE_URL
+        sync: false
+
+services:
+  - type: keyvalue
+    name: salti8-cache
+    plan: starter
+    region: oregon
+    ipAllowList: []
+    maxmemoryPolicy: allkeys-lru
+    persistenceMode: "off"
+
+  - type: web
+    name: salti8-api
+    runtime: python
+    plan: starter
+    region: oregon
+    branch: main
+    autoDeployTrigger: checksPass
+    buildCommand: pip install --upgrade pip && pip install -e .
+    preDeployCommand: alembic upgrade head
+    startCommand: exec uvicorn app.main:app --host 0.0.0.0 --port "$PORT"
+    healthCheckPath: /readyz
+    maxShutdownDelaySeconds: 30
+    domains:
+      - api.salti8.com
+    buildFilter:
+      paths:
+        - app/**
+        - alembic/**
+        - alembic.ini
+        - pyproject.toml
+        - render.yaml
+    envVars:
+      - fromGroup: salti8-audit-storage
+      - key: PYTHON_VERSION
+        value: 3.12.11
+      - key: APP_NAME
+        value: salti8-api
+      - key: ENVIRONMENT
+        value: production
+      - key: BACKEND_MODE
+        value: self_hosted
+      - key: HOST
+        value: 0.0.0.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: salti8-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: salti8-cache
+          property: connectionString
+      - key: PUBLIC_WEB_URL
+        value: https://salti8.com
+      - key: PUBLIC_API_URL
+        value: https://api.salti8.com
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://salti8.com,https://www.salti8.com
+      - key: CLERK_AUTHORIZED_PARTIES
+        value: https://salti8.com,https://www.salti8.com
+      - key: DEFAULT_PROVIDER
+        value: openai
+      - key: OPENAI_BASE_URL
+        value: https://api.openai.com/v1
+      - key: ENABLE_PROMPT_LOGGING
+        value: "false"
+      - key: RATE_LIMIT_REQUESTS_PER_MINUTE
+        value: "120"
+      - key: PLUGIN_TIMEOUT_MS
+        value: "100"
+      - key: CACHE_TTL_SECONDS
+        value: "300"
+      - key: CACHE_S3_THRESHOLD_BYTES
+        value: "4096"
+      - key: BILLING_PAST_DUE_GRACE_DAYS
+        value: "3"
+      - key: STARTUP_CHECKS_ENABLED
+        value: "true"
+      - key: STARTUP_CHECKS_STRICT
+        value: "true"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ADMIN_API_TOKEN
+        sync: false
+      - key: CLERK_JWT_KEY
+        sync: false
+      - key: CLERK_ISSUER
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_LIVE_MODE
+        sync: false
+      - key: STRIPE_PRICE_TEAM_MONTHLY
+        sync: false
+      - key: STRIPE_PRICE_BUSINESS_MONTHLY
+        sync: false
+      - key: STRIPE_PORTAL_CONFIGURATION_ID
+        sync: false
+
+  - type: worker
+    name: salti8-audit-worker
+    runtime: python
+    plan: starter
+    region: oregon
+    branch: main
+    autoDeployTrigger: checksPass
+    buildCommand: pip install --upgrade pip && pip install -e .
+    startCommand: python -m app.workers.tasks
+    maxShutdownDelaySeconds: 30
+    buildFilter:
+      paths:
+        - app/**
+        - pyproject.toml
+        - render.yaml
+    envVars:
+      - fromGroup: salti8-audit-storage
+      - key: PYTHON_VERSION
+        value: 3.12.11
+      - key: APP_NAME
+        value: salti8-audit-worker
+      - key: ENVIRONMENT
+        value: production
+      - key: BACKEND_MODE
+        value: self_hosted
+      - key: DATABASE_URL
+        fromDatabase:
+          name: salti8-postgres
+          property: connectionString
+      - key: WORKER_POLL_SECONDS
+        value: "5"
+      - key: WORKER_BATCH_SIZE
+        value: "5"
+
+databases:
+  - name: salti8-postgres
+    databaseName: salti8
+    user: salti8
+    plan: basic-1gb
+    storageAutoscalingEnabled: true
+    region: oregon
+    postgresMajorVersion: "16"
+    ipAllowList: []

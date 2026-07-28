@@ -2,8 +2,8 @@
 
 FastAPI scaffold for a tenant-aware AI routing proxy with both a memory-backed dev mode and a self-hosted mode using PostgreSQL, Redis, MinIO/S3, and an SQS-compatible queue.
 
-This repository also contains the SALTI8 web application in `apps/web`. Hostinger
-can import the repository as a Node.js web app from the repository root:
+This repository also contains the SALTI8 Next.js application in `apps/web`.
+Hostinger deploys that workspace as a server-side Next.js application:
 
 ```bash
 npm ci
@@ -11,13 +11,17 @@ npm run build
 npm run start
 ```
 
+The Next.js build output is `.next`. Hostinger runs the web process; the
+FastAPI control plane and Stripe webhook run separately at
+`https://api.salti8.com`.
+
 The web application uses the public domain `https://salti8.com`. The API and
 signed Stripe webhook are deployed separately at `https://api.salti8.com`.
 
 Customer authentication uses Clerk Organizations. The signed organization in
-the customer session maps to a Layer8 tenant; authenticated server routes then
-create Stripe Checkout and customer-portal sessions without exposing Stripe
-or Layer8 credentials to the browser. See:
+the customer session maps to a Layer8 tenant; authenticated FastAPI customer
+endpoints then create Stripe Checkout and customer-portal sessions without
+exposing Stripe or Layer8 credentials to the browser. See:
 
 - `docs/runbooks/HOSTINGER_DEPLOYMENT.md`
 - `docs/runbooks/SANDBOX_AND_FIRST_CUSTOMER.md`
@@ -189,62 +193,6 @@ That triggers the release workflow, which:
 
 Each published image also carries OCI labels for title, description, vendor, license, revision, and source metadata.
 
-Environment-specific deployment overlays now live under `deploy/`:
-
-- `deploy/env/staging.env.example`
-- `deploy/env/production.env.example`
-- `deploy/kubernetes/base/`
-- `deploy/kubernetes/overlays/staging/`
-- `deploy/kubernetes/overlays/production/`
-
-The Kubernetes layout is:
-
-- `base/`: shared API, worker, and service manifests
-- `overlays/staging/`: staging namespace, config, replica counts, and secret example
-- `overlays/production/`: production namespace, config, replica counts, and secret example
-
-Render or apply the overlays with:
-
-```bash
-kubectl apply -k deploy/kubernetes/overlays/staging
-kubectl apply -k deploy/kubernetes/overlays/production
-```
-
-Copy the matching `secret.example.yaml` file per environment, replace the placeholder values with real secret references or generated secrets, and apply it separately before the workloads.
-
-These overlays are still starting points. You should point them at managed Postgres, Redis, S3, and SQS endpoints and move all real credential material into your secret manager before using them outside local testing.
-
-## GitHub Deploy Workflows
-
-Deployment automation is split by environment:
-
-- `.github/workflows/deploy-staging.yml`
-- `.github/workflows/deploy-production.yml`
-
-Behavior:
-
-- `Deploy Staging` runs after a successful `CI` workflow on pushes to `main`
-- `Deploy Production` runs after a successful `Release` workflow on version tags
-- both workflows can also be triggered manually from GitHub Actions
-
-Required GitHub Environment setup:
-
-- Environment `staging`
-- Environment `production`
-- Secret `KUBE_CONFIG`
-  - base64-encoded kubeconfig for the target cluster
-- Secret `K8S_SECRET_MANIFEST`
-  - full Kubernetes Secret manifest for `layer8-secrets`
-
-Example kubeconfig secret creation:
-
-```bash
-base64 < ~/.kube/config
-```
-
-The deploy workflows:
-
-- apply the matching Kustomize overlay
-- apply the environment secret manifest from GitHub Secrets
-- update the API and worker deployments to the intended GHCR image tag
-- wait for rollout completion
+Production API infrastructure is declared in `render.yaml`. Render runs the
+FastAPI service, audit worker, PostgreSQL database, and Key Value service.
+Secrets and live Stripe identifiers are configured in Render, never committed.

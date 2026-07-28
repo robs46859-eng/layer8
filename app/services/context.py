@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any
 
 from app.core.security import generate_request_id, generate_trace_id
@@ -17,6 +18,9 @@ class RequestContext:
     api_key_id: str | None = None
     api_key_scopes: set[str] = field(default_factory=set)
     allowed_models: set[str] = field(default_factory=set)
+    billing_status: str = "inactive"
+    billing_entitlements: set[str] = field(default_factory=set)
+    payment_grace_ends_at: datetime | None = None
     policy_snapshot: dict[str, Any] = field(default_factory=dict)
     selected_provider: str | None = None
     plugin_bindings: list[str] = field(default_factory=list)

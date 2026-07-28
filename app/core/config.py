@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -46,11 +46,13 @@ class Settings(BaseSettings):
     stripe_webhook_secret: str = Field(default="", alias="STRIPE_WEBHOOK_SECRET")
     stripe_live_mode: bool = Field(default=False, alias="STRIPE_LIVE_MODE")
     stripe_price_team_monthly: str = Field(default="", alias="STRIPE_PRICE_TEAM_MONTHLY")
-    stripe_price_business_monthly: str = Field(
-        default="", alias="STRIPE_PRICE_BUSINESS_MONTHLY"
-    )
-    stripe_portal_configuration_id: str = Field(
-        default="", alias="STRIPE_PORTAL_CONFIGURATION_ID"
+    stripe_price_business_monthly: str = Field(default="", alias="STRIPE_PRICE_BUSINESS_MONTHLY")
+    stripe_portal_configuration_id: str = Field(default="", alias="STRIPE_PORTAL_CONFIGURATION_ID")
+    billing_past_due_grace_days: int = Field(
+        default=3,
+        ge=0,
+        le=30,
+        alias="BILLING_PAST_DUE_GRACE_DAYS",
     )
     clerk_jwt_key: str = Field(default="", alias="CLERK_JWT_KEY")
     clerk_issuer: str = Field(default="", alias="CLERK_ISSUER")
@@ -58,6 +60,54 @@ class Settings(BaseSettings):
         default="http://localhost:3000,https://salti8.com",
         alias="CLERK_AUTHORIZED_PARTIES",
     )
+    cors_allowed_origins: str = Field(
+        default=(
+            "http://localhost:3000,http://127.0.0.1:3000,"
+            "https://salti8.com,https://www.salti8.com"
+        ),
+        alias="CORS_ALLOWED_ORIGINS",
+    )
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def normalize_database_url(cls, value: object) -> object:
+        if not isinstance(value, str):
+            return value
+        if value.startswith("postgres://"):
+            return value.replace("postgres://", "postgresql+psycopg://", 1)
+        if value.startswith("postgresql://"):
+            return value.replace("postgresql://", "postgresql+psycopg://", 1)
+        return value
+
+    @field_validator("aws_endpoint_url", "s3_endpoint_url", mode="before")
+    @classmethod
+    def normalize_optional_endpoint(cls, value: object) -> object:
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
+
+    @field_validator("cors_allowed_origins")
+    @classmethod
+    def reject_wildcard_cors(cls, value: str) -> str:
+        origins = [origin.strip() for origin in value.split(",") if origin.strip()]
+        if "*" in origins:
+            raise ValueError("CORS_ALLOWED_ORIGINS must list explicit trusted origins")
+        return ",".join(origins)
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        origins = [
+            origin.strip()
+            for origin in self.cors_allowed_origins.split(",")
+            if origin.strip()
+        ]
+        if self.environment.lower() in {"production", "prod"}:
+            return [
+                origin
+                for origin in origins
+                if "localhost" not in origin and "127.0.0.1" not in origin
+            ]
+        return origins
 
 
 @lru_cache
