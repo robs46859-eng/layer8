@@ -9,13 +9,16 @@ second repository.
 
 ```text
 Node.js version: 22
-Install command: npm ci
+Root directory: apps/web
 Build command: npm run build
-Start command: npm run start
-Framework: Next.js
+Framework: Other
+Output directory: .next/standalone
+Entry file: apps/web/server.js
 ```
 
-The root `package.json` delegates these commands to `apps/web`.
+The Next build emits a self-contained standalone server with traced runtime
+dependencies. The post-build preparation step copies public assets and Next
+static assets into the standalone application directory.
 
 ## Hostinger environment
 
