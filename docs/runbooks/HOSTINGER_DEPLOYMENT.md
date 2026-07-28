@@ -1,5 +1,13 @@
 # Hostinger web deployment
 
+> **Superseded for launch:** The persistent Next.js runtime described below
+> builds successfully but fails on the current Hostinger environment because
+> Node aborts while creating its worker thread. Do not redeploy this
+> configuration. Follow
+> [`SALTI8_LAUNCH_ACTION_PLAN.md`](./SALTI8_LAUNCH_ACTION_PLAN.md) for the
+> static Hostinger frontend, Hostinger DNS, external FastAPI service, Clerk,
+> and Stripe recovery sequence.
+
 The repository root is a Hostinger-compatible Node.js application. The
 Hostinger app should connect directly to
 `https://github.com/robs46859-eng/layer8` on `main`; do not clone it into a
