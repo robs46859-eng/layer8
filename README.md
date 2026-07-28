@@ -2,6 +2,27 @@
 
 FastAPI scaffold for a tenant-aware AI routing proxy with both a memory-backed dev mode and a self-hosted mode using PostgreSQL, Redis, MinIO/S3, and an SQS-compatible queue.
 
+This repository also contains the SALTI8 web application in `apps/web`. Hostinger
+can import the repository as a Node.js web app from the repository root:
+
+```bash
+npm ci
+npm run build
+npm run start
+```
+
+The web application uses the public domain `https://salti8.com`. The API and
+signed Stripe webhook are deployed separately at `https://api.salti8.com`.
+
+Customer authentication uses Clerk Organizations. The signed organization in
+the customer session maps to a Layer8 tenant; authenticated server routes then
+create Stripe Checkout and customer-portal sessions without exposing Stripe
+or Layer8 credentials to the browser. See:
+
+- `docs/runbooks/HOSTINGER_DEPLOYMENT.md`
+- `docs/runbooks/SANDBOX_AND_FIRST_CUSTOMER.md`
+- `docs/runbooks/STRIPE_LIVE_SETUP.md`
+
 The request path is fixed:
 
 1. API key authentication

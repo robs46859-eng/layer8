@@ -4,6 +4,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.api.admin import admin_router
+from app.api.billing import (
+    billing_router,
+    customer_billing_router,
+    stripe_webhook_router,
+)
 from app.api.routes import router
 from app.api.spatial import spatial_router
 from app.core.config import get_settings
@@ -47,6 +52,9 @@ def create_app() -> FastAPI:
     app = FastAPI(title=settings.app_name, lifespan=lifespan)
     app.include_router(router)
     app.include_router(admin_router)
+    app.include_router(billing_router)
+    app.include_router(customer_billing_router)
+    app.include_router(stripe_webhook_router)
     app.include_router(spatial_router)
     return app
 

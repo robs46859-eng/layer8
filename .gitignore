@@ -10,3 +10,8 @@ __pycache__/
 dist/
 build/
 *.egg-info/
+node_modules/
+.next/
+.turbo/
+npm-debug.log*
+*.tsbuildinfo

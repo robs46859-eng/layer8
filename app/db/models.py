@@ -13,6 +13,9 @@ class Tenant(Base):
     name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     status: Mapped[str] = mapped_column(String(32), default="active")
     data_residency: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    clerk_organization_id: Mapped[str | None] = mapped_column(
+        String(64), unique=True, nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
@@ -128,3 +131,43 @@ class CacheManifest(Base):
     content_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
     metadata_json: Mapped[dict] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class BillingAccount(Base):
+    __tablename__ = "billing_accounts"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(
+        ForeignKey("tenants.id"), unique=True, nullable=False
+    )
+    stripe_customer_id: Mapped[str | None] = mapped_column(
+        String(64), unique=True, nullable=True
+    )
+    stripe_subscription_id: Mapped[str | None] = mapped_column(
+        String(64), unique=True, nullable=True
+    )
+    stripe_price_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    plan_key: Mapped[str] = mapped_column(String(32), default="developer")
+    subscription_status: Mapped[str] = mapped_column(String(32), default="inactive")
+    cancel_at_period_end: Mapped[bool] = mapped_column(Boolean, default=False)
+    current_period_end: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    entitlements: Mapped[list] = mapped_column(JSON, default=list)
+    last_invoice_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+    tenant: Mapped["Tenant"] = relationship()
+
+
+class StripeWebhookEvent(Base):
+    __tablename__ = "stripe_webhook_events"
+
+    stripe_event_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    event_type: Mapped[str] = mapped_column(String(128), nullable=False)
+    livemode: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    payload_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    processing_status: Mapped[str] = mapped_column(String(32), default="processing")
+    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    processed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

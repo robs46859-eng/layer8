@@ -5,7 +5,7 @@ import uuid
 
 
 def hash_api_secret(prefix: str, secret: str) -> str:
-    return hashlib.sha256(f"{prefix}:{secret}".encode("utf-8")).hexdigest()
+    return hashlib.sha256(f"{prefix}:{secret}".encode()).hexdigest()
 
 
 def verify_api_secret(prefix: str, presented_secret: str, expected_hash: str) -> bool:

@@ -7,11 +7,15 @@ security, or verification requirements below.
 ## Product and Brand
 
 - Company/umbrella brand: **SALTI8**.
+- Use **SALTI8 Labs** in creative or R&D contexts and **SALTI8, Inc.** in
+  legal or financial contexts where that legal name is applicable.
 - Primary product: **Layer8 Adaptive**.
-- Core reasoning and orchestration engine: **SALTI-B**.
+- On first mention, use **Layer8 Adaptive by SALTI8**. Use **Layer8 Adaptive**
+  on subsequent mentions.
+- Core reasoning and orchestration engine: **SALTI-B Engine**.
 - Primary public domain: `salti8.com`.
 - Use **SALTI8** without a space or hyphen in company and platform branding.
-  Reserve **SALTI-B** for the named technical engine.
+  Reserve **SALTI-B Engine** for the named technical engine.
 - Describe the product as a governed AI execution platform: multi-provider
   routing, durable cascades, validation, bounded repair, human approval,
   provenance, auditability, and spatial-intelligence workflows.
@@ -22,9 +26,13 @@ security, or verification requirements below.
 
 - Follow `docs/architecture/PLATFORM_BUILD_PLAN.md` for the target architecture
   and delivery sequence.
+- Follow `docs/design/ENTERPRISE_DESIGN_DIRECTIVE.md` for brand nomenclature,
+  palette, materiality, and typography. It overrides conflicting visual
+  direction in the original frontend.
 - The original frontend reference files are in the sibling project directory
-  `../Layer8 and SALTI-B Platform`. Preserve their visual language and content
-  intent while rebuilding them as maintainable production components.
+  `../Layer8 and SALTI-B Platform`. Preserve its blueprint structure, modular
+  grid, registration marks, square geometry, typography, and content intent
+  while applying the enterprise design directive.
 - Do not copy generated dependencies, build output, credentials, or secrets
   from the reference directory.
 - Keep public marketing content, authenticated product UI, API services, and
@@ -180,8 +188,9 @@ language.
 - Centralize metadata, canonical URL construction, structured data, sitemap
   generation, and robots rules to prevent drift.
 - Use one source of truth for public routes, navigation, and sitemap entries.
-- Preserve the reference frontend's distinctive visual design; do not replace
-  it with generic template styling.
+- Preserve the reference frontend's distinctive blueprint design while
+  applying the terracotta/slate/alabaster enterprise palette. Do not replace it
+  with generic template styling or decorative glassmorphism.
 - Add tests for metadata helpers, canonical URLs, sitemap inclusion/exclusion,
   structured data, redirects, and public-page server rendering.
 

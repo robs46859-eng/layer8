@@ -40,6 +40,24 @@ class Settings(BaseSettings):
     admin_api_token: str = Field(default="", alias="ADMIN_API_TOKEN")
     dev_api_key_prefix: str = Field(default="ak_live_demo", alias="DEV_API_KEY_PREFIX")
     dev_api_key_secret: str = Field(default="change-me-now", alias="DEV_API_KEY_SECRET")
+    public_web_url: str = Field(default="http://localhost:3000", alias="PUBLIC_WEB_URL")
+    public_api_url: str = Field(default="http://localhost:8000", alias="PUBLIC_API_URL")
+    stripe_secret_key: str = Field(default="", alias="STRIPE_SECRET_KEY")
+    stripe_webhook_secret: str = Field(default="", alias="STRIPE_WEBHOOK_SECRET")
+    stripe_live_mode: bool = Field(default=False, alias="STRIPE_LIVE_MODE")
+    stripe_price_team_monthly: str = Field(default="", alias="STRIPE_PRICE_TEAM_MONTHLY")
+    stripe_price_business_monthly: str = Field(
+        default="", alias="STRIPE_PRICE_BUSINESS_MONTHLY"
+    )
+    stripe_portal_configuration_id: str = Field(
+        default="", alias="STRIPE_PORTAL_CONFIGURATION_ID"
+    )
+    clerk_jwt_key: str = Field(default="", alias="CLERK_JWT_KEY")
+    clerk_issuer: str = Field(default="", alias="CLERK_ISSUER")
+    clerk_authorized_parties: str = Field(
+        default="http://localhost:3000,https://salti8.com",
+        alias="CLERK_AUTHORIZED_PARTIES",
+    )
 
 
 @lru_cache

@@ -1,10 +1,10 @@
 import os
 
 from app.core.config import get_settings
-from app.services.cache import CacheService, InMemoryCacheStore
-from app.services.context import RequestContext
 from app.core.pipeline import build_pipeline
 from app.schemas.inference import InferenceRequest, Message
+from app.services.cache import CacheService, InMemoryCacheStore
+from app.services.context import RequestContext
 
 
 def build_memory_pipeline():

@@ -7,12 +7,14 @@ class TenantCreateRequest(BaseModel):
     tenant_id: str = Field(min_length=3, max_length=64)
     name: str = Field(min_length=1, max_length=255)
     data_residency: str | None = Field(default=None, max_length=64)
+    clerk_organization_id: str | None = Field(default=None, min_length=3, max_length=64)
 
 
 class TenantUpdateRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
     data_residency: str | None = Field(default=None, max_length=64)
     status: str | None = Field(default=None, pattern="^(active|disabled)$")
+    clerk_organization_id: str | None = Field(default=None, min_length=3, max_length=64)
 
 
 class TenantResponse(BaseModel):
@@ -20,6 +22,7 @@ class TenantResponse(BaseModel):
     name: str
     status: str
     data_residency: str | None
+    clerk_organization_id: str | None
     created_at: datetime
     updated_at: datetime
     disabled_at: datetime | None
@@ -44,4 +47,3 @@ class APIKeyResponse(BaseModel):
 
 class APIKeyCreateResponse(APIKeyResponse):
     api_key: str
-

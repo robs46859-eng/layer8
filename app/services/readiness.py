@@ -33,7 +33,7 @@ class ReadinessService:
         try:
             fn()
             return {"status": "ok"}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - readiness must report any dependency failure
             return {"status": "error", "detail": str(exc)}
 
     def _check_postgres(self) -> None:

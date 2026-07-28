@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -14,6 +16,7 @@ from app.services.api_keys import APIKeyAdminService
 from app.services.tenants import TenantService
 
 admin_router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin_auth)])
+DbSession = Annotated[Session, Depends(get_db_session)]
 
 
 def _to_tenant_response(tenant) -> TenantResponse:
@@ -31,25 +34,30 @@ def _to_api_key_create_response(api_key, raw_key: str) -> APIKeyCreateResponse:
 
 
 @admin_router.get("/tenants", response_model=list[TenantResponse])
-def list_tenants(session: Session = Depends(get_db_session)) -> list[TenantResponse]:
+def list_tenants(session: DbSession) -> list[TenantResponse]:
     service = TenantService(session)
     return [_to_tenant_response(tenant) for tenant in service.list_tenants()]
 
 
 @admin_router.post("/tenants", response_model=TenantResponse, status_code=status.HTTP_201_CREATED)
 def create_tenant(
-    payload: TenantCreateRequest, session: Session = Depends(get_db_session)
+    payload: TenantCreateRequest, session: DbSession
 ) -> TenantResponse:
     service = TenantService(session)
     try:
-        tenant = service.create_tenant(payload.tenant_id, payload.name, payload.data_residency)
+        tenant = service.create_tenant(
+            payload.tenant_id,
+            payload.name,
+            payload.data_residency,
+            payload.clerk_organization_id,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     return _to_tenant_response(tenant)
 
 
 @admin_router.get("/tenants/{tenant_id}", response_model=TenantResponse)
-def get_tenant(tenant_id: str, session: Session = Depends(get_db_session)) -> TenantResponse:
+def get_tenant(tenant_id: str, session: DbSession) -> TenantResponse:
     service = TenantService(session)
     try:
         tenant = service.get_tenant(tenant_id)
@@ -60,7 +68,7 @@ def get_tenant(tenant_id: str, session: Session = Depends(get_db_session)) -> Te
 
 @admin_router.patch("/tenants/{tenant_id}", response_model=TenantResponse)
 def update_tenant(
-    tenant_id: str, payload: TenantUpdateRequest, session: Session = Depends(get_db_session)
+    tenant_id: str, payload: TenantUpdateRequest, session: DbSession
 ) -> TenantResponse:
     service = TenantService(session)
     try:
@@ -69,6 +77,7 @@ def update_tenant(
             name=payload.name,
             data_residency=payload.data_residency,
             status=payload.status,
+            clerk_organization_id=payload.clerk_organization_id,
         )
     except ValueError as exc:
         code = status.HTTP_404_NOT_FOUND if "not found" in str(exc) else status.HTTP_400_BAD_REQUEST
@@ -77,7 +86,7 @@ def update_tenant(
 
 
 @admin_router.post("/tenants/{tenant_id}/disable", response_model=TenantResponse)
-def disable_tenant(tenant_id: str, session: Session = Depends(get_db_session)) -> TenantResponse:
+def disable_tenant(tenant_id: str, session: DbSession) -> TenantResponse:
     service = TenantService(session)
     try:
         tenant = service.disable_tenant(tenant_id)
@@ -88,7 +97,7 @@ def disable_tenant(tenant_id: str, session: Session = Depends(get_db_session)) -
 
 @admin_router.get("/tenants/{tenant_id}/api-keys", response_model=list[APIKeyResponse])
 def list_api_keys(
-    tenant_id: str, session: Session = Depends(get_db_session)
+    tenant_id: str, session: DbSession
 ) -> list[APIKeyResponse]:
     service = APIKeyAdminService(session)
     try:
@@ -106,7 +115,7 @@ def list_api_keys(
 def create_api_key(
     tenant_id: str,
     payload: APIKeyCreateRequest,
-    session: Session = Depends(get_db_session),
+    session: DbSession,
 ) -> APIKeyCreateResponse:
     service = APIKeyAdminService(session)
     try:
@@ -117,7 +126,7 @@ def create_api_key(
 
 
 @admin_router.post("/api-keys/{key_id}/revoke", response_model=APIKeyResponse)
-def revoke_api_key(key_id: str, session: Session = Depends(get_db_session)) -> APIKeyResponse:
+def revoke_api_key(key_id: str, session: DbSession) -> APIKeyResponse:
     service = APIKeyAdminService(session)
     try:
         api_key = service.revoke_api_key(key_id)
@@ -127,7 +136,7 @@ def revoke_api_key(key_id: str, session: Session = Depends(get_db_session)) -> A
 
 
 @admin_router.post("/api-keys/{key_id}/rotate", response_model=APIKeyCreateResponse)
-def rotate_api_key(key_id: str, session: Session = Depends(get_db_session)) -> APIKeyCreateResponse:
+def rotate_api_key(key_id: str, session: DbSession) -> APIKeyCreateResponse:
     service = APIKeyAdminService(session)
     try:
         api_key, raw_key = service.rotate_api_key(key_id)

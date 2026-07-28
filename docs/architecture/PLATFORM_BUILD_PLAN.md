@@ -153,10 +153,16 @@ The supplied frontend contains seven useful page designs:
 It also contains a coherent “Industry” design system:
 
 - Barlow Condensed headings and Barlow body text
-- technical steel-blue foundation with orange/lavender/yellow product accents
+- an original technical steel-blue palette, superseded for production by the
+  SALTI8 terracotta/slate/alabaster enterprise palette
 - blueprint cards and registration marks
 - light/dark themes
 - square geometry and thin Lucide-style icons
+
+`docs/design/ENTERPRISE_DESIGN_DIRECTIVE.md` is the production source of truth
+for brand nomenclature, palette, depth, materiality, and typography. The
+prototype remains the source for structure, page composition, and interaction
+intent.
 
 The files are design prototypes, not a production application:
 
@@ -644,12 +650,22 @@ Create `apps/web` with React, TypeScript, and the current supported Next.js rele
 - blueprint design language;
 - registration-mark cards;
 - typography;
-- product accent palette;
 - dark mode;
 - the six-stage cascade visualization;
 - comparison mode;
 - safe/caution/unstable vocabulary;
 - landing, pricing, docs, integrations, signup, dashboard, and playground flows.
+
+### Retune
+
+- replace the steel-blue and secondary product accents with a calibrated
+  burnt-matte-terracotta accent;
+- use deep slate / titanium gray for structure, data panels, dividers, and
+  authoritative text;
+- use alabaster / cloud white for the primary canvas;
+- use restrained architectural-acrylic layering to communicate hierarchy;
+- reserve terracotta for the topmost interactive and focal layer;
+- validate final color tokens against WCAG 2.2 AA before making them canonical.
 
 ### Replace
 

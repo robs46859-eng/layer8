@@ -8,9 +8,9 @@ from app.core.config import get_settings
 from app.db.base import Base
 from app.db.session import get_engine, get_session_factory
 from app.main import create_app
+from app.schemas.inference import InferenceRequest, Message
 from app.services.auth import AuthService, PostgresAPIKeyStore
 from app.services.context import RequestContext
-from app.schemas.inference import InferenceRequest, Message
 
 
 def _reset_settings() -> None:

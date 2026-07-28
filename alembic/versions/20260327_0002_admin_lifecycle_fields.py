@@ -1,8 +1,8 @@
 """add tenant and api key lifecycle fields"""
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 revision = "20260327_0002"
 down_revision = "20260327_0001"
@@ -19,12 +19,16 @@ def upgrade() -> None:
     op.execute("UPDATE tenants SET updated_at = created_at WHERE updated_at IS NULL")
     op.execute("UPDATE api_keys SET updated_at = created_at WHERE updated_at IS NULL")
 
-    op.alter_column("tenants", "updated_at", nullable=False)
-    op.alter_column("api_keys", "updated_at", nullable=False)
+    with op.batch_alter_table("tenants") as batch_op:
+        batch_op.alter_column("updated_at", nullable=False)
+    with op.batch_alter_table("api_keys") as batch_op:
+        batch_op.alter_column("updated_at", nullable=False)
 
 
 def downgrade() -> None:
-    op.drop_column("api_keys", "revoked_at")
-    op.drop_column("api_keys", "updated_at")
-    op.drop_column("tenants", "disabled_at")
-    op.drop_column("tenants", "updated_at")
+    with op.batch_alter_table("api_keys") as batch_op:
+        batch_op.drop_column("revoked_at")
+        batch_op.drop_column("updated_at")
+    with op.batch_alter_table("tenants") as batch_op:
+        batch_op.drop_column("disabled_at")
+        batch_op.drop_column("updated_at")
