@@ -4,9 +4,13 @@
 
 **Prepared:** July 28, 2026
 
+**Company name:** SALTI8
+
 **Recommended product name:** Layer8 Adaptive
 
 **Core engine name:** SALTI-B Control Engine
+
+**Primary public domain:** `salti8.com`
 
 **Recommended repository:** `robs46859-eng/layer8` on `main`
 
@@ -65,7 +69,7 @@ Because direct work on `main` removes the normal pull-request safety gate:
 
 ### Recommended naming hierarchy
 
-- **Company/platform brand:** Layer8
+- **Company/umbrella brand:** SALTI8
 - **Commercial product:** Layer8 Adaptive
 - **Agent controller:** SALTI-B Control Engine
 - **Resilience/gating model:** B-HDSR
@@ -73,12 +77,17 @@ Because direct work on `main` removes the normal pull-request safety gate:
 - **First vertical modules:** Spatial Intelligence, Digital Twins, and Disaster Resilience
 - **Repository:** `layer8`
 - **Python packages:** `app.layer8`, `app.salti_b`, `app.bhdsr`, `app.modules`
-- **Public API host:** `api.<approved-domain>`
-- **Web app host:** `app.<approved-domain>`
+- **Primary public domain:** `salti8.com`
+- **Public API host:** `api.salti8.com`
+- **Web app host:** `app.salti8.com`
 
-“Layer8 Adaptive” is the strongest product name because it keeps the existing brand equity, describes the closed-loop behavior, and does not force customers to understand the SALTI-B acronym before understanding the value.
+“SALTI8” is the company brand. It connects the existing SALTI identity to Layer8 in a short, memorable name while keeping the customer-facing product architecture clear.
+
+“Layer8 Adaptive” remains the commercial product name because it keeps the existing product equity, describes the closed-loop behavior, and does not force customers to understand the SALTI-B acronym before understanding the value.
 
 Keep “SALTI-B” as the distinctive engine name. The acronym is currently inconsistent in the source material: some documents use “SATLI” for Smith Agent Temperature Logic Indicator, while the UI and broader platform use “SALTI” or “SALTI-B.” Resolve this in an architecture decision record and glossary before public launch. The code should use one canonical spelling: `salti_b`.
+
+The preferred public lockup is **Layer8 Adaptive by SALTI8**, with **Powered by the SALTI-B Engine** used where the engine distinction helps explain the architecture. Company branding must use `SALTI8` without a space or hyphen; `SALTI-B` is reserved for the engine.
 
 ### Other viable names
 
@@ -90,7 +99,8 @@ Keep “SALTI-B” as the distinctive engine name. The acronym is currently inco
 | Layer8 Control Plane | Technical developer product | Precise but not differentiated |
 | Layer8 Forge | Spatial asset creation | Good module name; too creation-focused for the whole platform |
 
-Domain and trademark clearance should be completed before finalizing the commercial name.
+Domain registration and formal trademark clearance remain operational
+requirements even though the naming decision is final.
 
 ---
 
@@ -1084,7 +1094,10 @@ The platform is pilot-ready only when:
 
 ## 19. Final recommendation
 
-Keep the GitHub repository named `layer8` and evolve it into the monorepo. Market the product as **Layer8 Adaptive**, with **SALTI-B** as its control engine and **B-HDSR** as its deterministic resilience/gating model.
+Keep the GitHub repository named `layer8` and evolve it into the monorepo. Use
+**SALTI8** as the company brand and `salti8.com` as the primary public domain.
+Market the product as **Layer8 Adaptive by SALTI8**, with **SALTI-B** as its
+control engine and **B-HDSR** as its deterministic resilience/gating model.
 
 The existing backend is valuable and should be preserved. The supplied frontend is also valuable, but as a visual/product specification rather than a production runtime. The build should join the two through shared, generated contracts and a durable cascade execution model.
 

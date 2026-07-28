@@ -1,4 +1,4 @@
-# Layer8 Adaptive Repository Instructions
+# SALTI8 / Layer8 Adaptive Repository Instructions
 
 These instructions apply to the entire repository. More specific `AGENTS.md`
 files may add local guidance, but they must not weaken the SEO, accessibility,
@@ -6,10 +6,12 @@ security, or verification requirements below.
 
 ## Product and Brand
 
-- Company/umbrella brand: **Castoreum Labs**.
+- Company/umbrella brand: **SALTI8**.
 - Primary product: **Layer8 Adaptive**.
 - Core reasoning and orchestration engine: **SALTI-B**.
-- Primary domain candidate: `castoreum.io`.
+- Primary public domain: `salti8.com`.
+- Use **SALTI8** without a space or hyphen in company and platform branding.
+  Reserve **SALTI-B** for the named technical engine.
 - Describe the product as a governed AI execution platform: multi-provider
   routing, durable cascades, validation, bounded repair, human approval,
   provenance, auditability, and spatial-intelligence workflows.
