@@ -118,6 +118,24 @@ def aws_access_key_id(value: str) -> str | None:
     return None
 
 
+def pem_public_key(value: str) -> str | None:
+    r"""Clerk's JWT key is an RSA public key in PEM form.
+
+    Accepts it pasted across lines or already flattened with literal \n. The
+    header and footer must both be present — a body-only paste is the common
+    mistake and produces an opaque PyJWT failure at request time rather than
+    at deploy time.
+    """
+    if not value.strip():
+        return "must not be empty"
+    normalised = value.replace("\\n", "\n")
+    if "BEGIN PUBLIC KEY" not in normalised:
+        return "missing the '-----BEGIN PUBLIC KEY-----' header — copy the whole key from Clerk"
+    if "END PUBLIC KEY" not in normalised:
+        return "missing the '-----END PUBLIC KEY-----' footer — the paste was truncated"
+    return None
+
+
 def min_length(n: int) -> Callable[[str], str | None]:
     def check(value: str) -> str | None:
         if len(value) < n:
@@ -227,8 +245,9 @@ MANIFEST: tuple[Var, ...] = (
         validators=(comma_separated_https,)),
 
     # --- identity ---------------------------------------------------------
-    Var("CLERK_JWT_KEY", BACKEND, "Clerk JWKS verification key", secret=True,
-        validators=(non_empty,)),
+    Var("CLERK_JWT_KEY", BACKEND, "Clerk RSA public key, PEM. May be pasted "
+        "across multiple lines; envctl flattens it on push",
+        validators=(pem_public_key,)),
     Var("CLERK_ISSUER", BACKEND, "Clerk issuer URL", validators=(https_url,)),
     Var("CLERK_AUTHORIZED_PARTIES", BACKEND, "Accepted azp claims",
         validators=(comma_separated_https,)),
@@ -290,11 +309,26 @@ BY_KEY = {var.key: var for var in MANIFEST}
 # --------------------------------------------------------------------------
 
 
-def load_env_file(path: Path) -> dict[str, str]:
-    """Parse KEY=VALUE. Blank values are preserved as empty strings.
+KEY_LINE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 
-    Distinguishing 'absent' from 'present but empty' is the whole point —
-    S3_ENDPOINT_URL must be present and empty.
+
+def load_env_file(path: Path) -> dict[str, str]:
+    """Parse KEY=VALUE, tolerating values that span multiple lines.
+
+    Blank values are preserved as empty strings. Distinguishing 'absent' from
+    'present but empty' is the whole point — S3_ENDPOINT_URL must be present
+    and empty.
+
+    Multi-line values: a PEM key copied from Clerk arrives as seven lines,
+    because PEM wraps its base64 body at 64 columns. Demanding that a
+    non-programmer manually fold that into one line with literal \\n escapes is
+    a needless trap, so any line that does not begin with `KEY=` is treated as
+    a continuation of the previous key and joined with a newline.
+
+    A consequence worth knowing: a genuinely malformed line is now attached to
+    whatever key precedes it rather than reported on its own. Validation
+    catches that downstream, because the resulting value fails its format
+    check.
     """
     if not path.exists():
         die(
@@ -302,20 +336,49 @@ def load_env_file(path: Path) -> dict[str, str]:
             f"Copy env/production.env.example to env/production.env and fill it in.\n"
             f"That file is gitignored and must never be committed."
         )
+
     values: dict[str, str] = {}
+    current_key: str | None = None
+
     for lineno, raw in enumerate(path.read_text().splitlines(), start=1):
-        line = raw.strip()
-        if not line or line.startswith("#"):
+        stripped = raw.strip()
+
+        if not stripped or stripped.startswith("#"):
+            # A blank line ends a continuation block, so an accidental gap
+            # cannot silently swallow the rest of the file.
+            current_key = None
             continue
-        if "=" not in line:
-            die(f"{path}:{lineno}: expected KEY=VALUE, got: {raw!r}")
-        key, _, value = line.partition("=")
-        key = key.strip()
-        value = value.strip()
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
-            value = value[1:-1]
-        values[key] = value
+
+        if KEY_LINE.match(stripped):
+            key, _, value = stripped.partition("=")
+            key = key.strip()
+            value = value.strip()
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+                value = value[1:-1]
+            values[key] = value
+            current_key = key
+            continue
+
+        if current_key is None:
+            die(
+                f"{path}:{lineno}: expected KEY=VALUE but found a bare value.\n"
+                f"  Every value must sit on the same line as its key, or directly\n"
+                f"  beneath one (for multi-line values such as a PEM key)."
+            )
+
+        values[current_key] = f"{values[current_key]}\n{stripped}".strip("\n")
+
     return values
+
+
+def flatten_multiline(value: str) -> str:
+    r"""Collapse real newlines to literal \n for transport.
+
+    app/api/dependencies.py does `clerk_jwt_key.replace("\\n", "\n")` before
+    handing the key to PyJWT, so the deployed value must carry escapes rather
+    than actual line breaks.
+    """
+    return value.replace("\r\n", "\n").replace("\n", "\\n")
 
 
 def fingerprint(value: str) -> str:
@@ -468,7 +531,7 @@ def _plan(target: str, service_name: str) -> tuple[RenderClient, dict, dict[str,
                 desired[var.key] = remote[var.key]
             continue
         if var.key in values:
-            desired[var.key] = values[var.key]
+            desired[var.key] = flatten_multiline(values[var.key])
     return client, service, remote, desired
 
 
