@@ -2,9 +2,9 @@
 
 **System:** Layer8 Adaptive by SALTI8  
 **Environment:** Production  
-**Verified:** July 28, 2026 (America/Denver)  
+**Verified:** July 29, 2026 (America/Denver)  
 **Repository:** `robs46859-eng/layer8` on `main`  
-**Verified revision:** `ed17ed952e82a71041eb768b92b617fcae1d8fc0`
+**Verified revision:** `fe6fd70`
 
 This document is the point-in-time blueprint for the system that is deployed
 today. `PLATFORM_BUILD_PLAN.md` remains the target architecture and roadmap.
@@ -20,18 +20,46 @@ current production boundary.
 | Customer sign-in route | PASS | `https://salti8.com/sign-in/` returned `200`; Clerk session handling is active |
 | Billing route | PASS | `https://salti8.com/app/billing/` returned `200` |
 | API liveness | PASS | `https://api.salti8.com/healthz` returned `200` with `{"status":"ok"}` |
-| API readiness | **FAIL** | `https://api.salti8.com/readyz` returned `503` |
+| API readiness | PASS | `https://api.salti8.com/readyz` returned `200` with all four checks `ok` |
 | PostgreSQL readiness | PASS | Production readiness check reported PostgreSQL `ok` |
-| Redis readiness | **FAIL** | Production attempted `localhost:6379` and received connection refused |
-| Object-storage readiness | **FAIL** | Production reported missing AWS-compatible credentials |
-| Queue readiness | **FAIL** | Production reported missing AWS-compatible credentials |
+| Redis readiness | PASS | `salti8-cache` Key Value instance created; `REDIS_URL` set to its internal URL |
+| Object-storage readiness | PASS | `salti8-audit-prod` bucket reachable; `head_bucket` succeeded |
+| Queue readiness | PASS | `salti8-audit` SQS queue reachable via `GetQueueAttributes` |
 | Customer auth boundary | PASS | Anonymous customer billing request returned the expected `401` |
-| Platform admin boundary | **FAIL / unconfigured** | Anonymous admin request returned `503` with `admin auth is not configured` |
-| Clerk organization access | **BLOCKED** | Authenticated browser session reached Billing but displayed `Organization required` |
+| Platform admin boundary | PASS | Anonymous admin request returned `401 missing admin authorization` |
+| Clerk organization access | **BLOCKED** | Authenticated browser session reaches Billing but displays `Organization required` — no Clerk org is mapped to a tenant yet |
+| Audit worker | **NOT DEPLOYED** | No worker service exists; nothing drains the audit queue |
 
-The public site is live, but the complete deployed product is not operationally
-ready. A `200` liveness response proves that the API process runs; the `503`
-readiness response proves that required infrastructure is not connected.
+The API is operationally ready. Remaining work is provisioning, not
+infrastructure: mapping a Clerk organization to an active tenant, and deploying
+the audit worker.
+
+## 1.1 Configuration drift from `render.yaml`
+
+`render.yaml` has **never been applied**. No Blueprint instance exists in the
+Render workspace, so the live services were created by hand and nothing the
+file declares is in effect. Recorded here because the divergence is not
+otherwise visible from the repository.
+
+| `render.yaml` declares | Actually deployed |
+| --- | --- |
+| `salti8-api`, Python runtime, `starter` plan | `layer8`, Docker runtime, **Free** plan |
+| `salti8-cache` via `fromService` | `salti8-cache` created manually; `REDIS_URL` set as a literal |
+| `salti8-audit-worker` | **does not exist** |
+| env group `salti8-audit-storage` | **does not exist**; values set directly on the service |
+| `preDeployCommand: alembic upgrade head` | not running — migrations are manual |
+| `buildFilter` restricted to `app/**` | not applied; frontend-only commits redeploy the API |
+| `healthCheckPath: /readyz` | not configured |
+
+Two consequences worth acting on. The Free plan spins the instance down after
+inactivity, so the first request after a quiet period takes 50 seconds or more —
+unacceptable once a customer is depending on it. And because `buildFilter` is
+absent, every documentation or frontend commit triggers a full API rebuild.
+
+Configuration is now managed by `scripts/envctl.py` against
+`env/production.env`; see `../runbooks/ENVIRONMENT_MANAGEMENT.md`. Until a
+Blueprint is applied, `render.yaml` should be read as the intended target
+architecture, not as a description of production.
 
 ## 2. Deployed topology
 
@@ -175,21 +203,33 @@ A deployment is acceptable only when all of the following pass:
     grant the expected entitlements.
 11. The audit worker consumes a synthetic event and writes its durable archive.
 
-The current production deployment fails gates 6, 8, 9 and 11. Gate 10 was not
-exercised during this read-only verification.
+As of July 29, 2026 gates 1–8 pass. Gates 9 and 11 remain open, and gate 10 has
+not been exercised.
 
 ## 9. Recovery order
 
-1. Correct the Render Redis binding so `REDIS_URL` is not the localhost
-   default.
-2. Configure the S3/SQS-compatible group values and verify the bucket and queue.
-3. Configure `ADMIN_API_TOKEN` through Render's secret field.
-4. Re-deploy the API and worker, then require `/readyz` to return `200`.
+Completed July 29, 2026:
+
+1. ~~Correct the Render Redis binding.~~ A `salti8-cache` Key Value instance was
+   created (Free, Oregon, `allkeys-lru`, persistence off) and `REDIS_URL` set to
+   its internal URL. There was no binding to correct — the service did not
+   exist.
+2. ~~Configure the S3/SQS values and verify the bucket and queue.~~ Bucket
+   `salti8-audit-prod` and queue `salti8-audit` created in `us-east-1`, with a
+   scoped IAM user `salti8-render`. See `../runbooks/AUDIT_STORAGE_SETUP.md`.
+3. ~~Configure `ADMIN_API_TOKEN`.~~ Anonymous `/admin` now returns `401`.
+4. ~~Re-deploy and require `/readyz` to return `200`.~~ All four checks report
+   `ok`.
+
+Remaining:
+
 5. Create a Clerk organization and invite the intended administrator.
 6. Map that Clerk organization ID to an active Layer8 tenant through the
-   protected admin API.
+   protected admin API. This is what currently blocks the billing page.
 7. Verify the authenticated billing page and Stripe test-mode lifecycle.
-8. Verify one audit event from API request through worker archive.
+8. Deploy the audit worker, then verify one audit event from API request
+   through worker archive. Until the worker exists, queued messages expire
+   after the 14-day retention window.
 
 Do not weaken readiness checks or bypass the tenant mapping to make the UI
 appear accessible.

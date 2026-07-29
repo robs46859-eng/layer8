@@ -1,5 +1,22 @@
 # yaml-language-server: $schema=https://render.com/schema/render.yaml.json
 #
+# ---------------------------------------------------------------------------
+# STATUS: NOT APPLIED. This file describes the TARGET architecture.
+#
+# As of 2026-07-29 no Blueprint instance exists in the Render workspace, so
+# nothing below is in effect. Production runs hand-created services that differ
+# from this file in name, runtime, and plan. The live service is `layer8`
+# (Docker, Free); `salti8-audit-worker` and the `salti8-audit-storage` env
+# group do not exist at all.
+#
+# docs/architecture/DEPLOYED_BUILD_BLUEPRINT.md section 1.1 records the full
+# divergence. Environment values are managed by scripts/envctl.py against
+# env/production.env — see docs/runbooks/ENVIRONMENT_MANAGEMENT.md.
+#
+# Applying this Blueprint would create NEW services alongside the existing
+# ones, requiring a domain migration. Do not apply it casually.
+# ---------------------------------------------------------------------------
+#
 # First-customer Render Blueprint for the SALTI8 control plane.
 # Host the Next.js marketing/customer frontend separately on Hostinger.
 # Fill every sync:false value in Render before applying this Blueprint.
