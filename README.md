@@ -42,10 +42,32 @@ exposing Stripe or Layer8 credentials to the browser. See:
 
 - `docs/architecture/DEPLOYED_BUILD_BLUEPRINT.md`
 - `docs/architecture/ACCESS_AND_ENTITLEMENT_SPECIFICATION.md`
+- `docs/runbooks/ENVIRONMENT_MANAGEMENT.md`
+- `docs/runbooks/AUDIT_STORAGE_SETUP.md`
 - `docs/runbooks/HOSTINGER_DEPLOYMENT.md`
 - `docs/runbooks/SEO_AND_INDEXING.md`
 - `docs/runbooks/SANDBOX_AND_FIRST_CUSTOMER.md`
 - `docs/runbooks/STRIPE_LIVE_SETUP.md`
+
+### Configuration
+
+`env/production.env` is the single source of truth for every environment value.
+`scripts/envctl.py` validates it against a manifest and pushes it to Render over
+the API, so configuration is never typed into a dashboard:
+
+```bash
+cp env/production.env.example env/production.env   # fill in, gitignored
+export RENDER_API_KEY=rnd_...
+python3 scripts/envctl.py validate
+python3 scripts/envctl.py diff
+python3 scripts/envctl.py push
+python3 scripts/envctl.py doctor
+```
+
+The manifest encodes rules that are otherwise invisible — variables that must be
+present but empty, values whose blankness produces a misleading error, and a
+hard refusal to route any secret to a `NEXT_PUBLIC_*` build target. See
+`docs/runbooks/ENVIRONMENT_MANAGEMENT.md`.
 
 ### Public site and search
 

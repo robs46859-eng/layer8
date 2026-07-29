@@ -19,3 +19,5 @@ npm-debug.log*
 *.tsbuildinfo
 .DS_Store
 apps/web/out/
+env/*.env
+!env/*.env.example
