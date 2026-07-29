@@ -1,6 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow, Barlow_Condensed } from "next/font/google";
 import { ClerkClientProvider } from "@/components/clerk-client-provider";
+import {
+  DEFAULT_OG_IMAGE,
+  ORG_LEGAL_NAME,
+  PRODUCT_NAME,
+  SITE_NAME,
+  SITE_URL,
+  absoluteUrl,
+} from "@/lib/site";
 import "./globals.css";
 
 const barlow = Barlow({
@@ -21,13 +29,17 @@ const siteDescription =
   "Layer8 Adaptive by SALTI8 is a governed AI execution platform for multi-provider routing, durable agent cascades, bounded repair, human approval, and auditable provenance.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://salti8.com"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "SALTI8 | Governed AI Execution",
     template: "%s | SALTI8",
   },
   description: siteDescription,
-  applicationName: "Layer8 Adaptive",
+  applicationName: PRODUCT_NAME,
+  authors: [{ name: ORG_LEGAL_NAME, url: SITE_URL }],
+  creator: ORG_LEGAL_NAME,
+  publisher: ORG_LEGAL_NAME,
+  category: "technology",
   keywords: [
     "AI gateway",
     "LLM gateway",
@@ -37,30 +49,30 @@ export const metadata: Metadata = {
     "LLM observability",
     "human-in-the-loop AI",
     "durable AI workflows",
+    "adaptive spatial intelligence",
   ],
   alternates: {
     canonical: "/",
   },
+  formatDetection: {
+    telephone: false,
+    address: false,
+    email: false,
+  },
   openGraph: {
     type: "website",
-    url: "/",
-    siteName: "SALTI8",
+    locale: "en_US",
+    url: absoluteUrl("/"),
+    siteName: SITE_NAME,
     title: "SALTI8 | Governed AI Execution",
     description: siteDescription,
-    images: [
-      {
-        url: "/images/salti8-acrylic-architecture.webp",
-        width: 2000,
-        height: 1091,
-        alt: "SALTI8 acrylic architecture representing governed AI execution layers.",
-      },
-    ],
+    images: [DEFAULT_OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
     title: "SALTI8 | Governed AI Execution",
     description: siteDescription,
-    images: ["/images/salti8-acrylic-architecture.webp"],
+    images: [DEFAULT_OG_IMAGE.url],
   },
   robots: {
     index: true,

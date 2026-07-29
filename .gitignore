@@ -17,3 +17,5 @@ node_modules/
 .turbo/
 npm-debug.log*
 *.tsbuildinfo
+.DS_Store
+apps/web/out/

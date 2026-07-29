@@ -9,6 +9,13 @@ import {
   seoPages,
   type SeoPage,
 } from "@/lib/seo-content";
+import {
+  DEFAULT_OG_IMAGE,
+  PRODUCT_NAME,
+  SITE_NAME,
+  SITE_URL,
+  absoluteUrl,
+} from "@/lib/site";
 
 type PageProps = {
   params: Promise<{ slug: string[] }>;
@@ -30,81 +37,144 @@ export async function generateMetadata({
     return {};
   }
   const canonical = `/${page.slug}/`;
+  const ogImage = page.ogImage
+    ? { url: page.ogImage, width: 1200, height: 630, alt: page.title }
+    : DEFAULT_OG_IMAGE;
   return {
     title: page.title,
     description: page.description,
     keywords: page.keywords,
     alternates: { canonical },
     openGraph: {
-      type: "website",
-      url: canonical,
+      type: "article",
+      locale: "en_US",
+      url: absoluteUrl(page.slug),
       title: page.title,
       description: page.description,
-      siteName: "SALTI8",
-      images: [
-        {
-          url: "/images/salti8-acrylic-architecture.webp",
-          width: 2000,
-          height: 1091,
-          alt: "SALTI8 acrylic architecture representing governed AI execution layers.",
-        },
-      ],
+      siteName: SITE_NAME,
+      images: [ogImage],
     },
     twitter: {
       card: "summary_large_image",
       title: page.title,
       description: page.description,
-      images: ["/images/salti8-acrylic-architecture.webp"],
+      images: [ogImage.url],
     },
     robots: page.noindex
       ? { index: false, follow: false }
-      : { index: true, follow: true },
+      : {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            "max-image-preview": "large",
+            "max-snippet": -1,
+          },
+        },
   };
 }
 
-function structuredData(page: SeoPage) {
-  const breadcrumbs = [
+/**
+ * Compare pages live one level deeper (`/compare/portkey/`), so the breadcrumb
+ * trail has to reflect that. A flat two-item trail on a nested URL is a
+ * mismatch Google will quietly drop.
+ */
+function breadcrumbTrail(page: SeoPage) {
+  const trail = [
     {
       "@type": "ListItem",
       position: 1,
-      name: "SALTI8",
-      item: "https://salti8.com",
-    },
-    {
-      "@type": "ListItem",
-      position: 2,
-      name: page.heading,
-      item: `https://salti8.com/${page.slug}/`,
+      name: SITE_NAME,
+      item: absoluteUrl("/"),
     },
   ];
+  const segments = page.slug.split("/");
+  if (segments.length > 1) {
+    trail.push({
+      "@type": "ListItem",
+      position: 2,
+      name: "Comparisons",
+      item: absoluteUrl(segments[0]),
+    });
+  }
+  trail.push({
+    "@type": "ListItem",
+    position: trail.length + 1,
+    name: page.heading,
+    item: absoluteUrl(page.slug),
+  });
+  return trail;
+}
+
+function structuredData(page: SeoPage) {
+  const pageUrl = absoluteUrl(page.slug);
+  const figures = [
+    ...(page.heroFigure ? [page.heroFigure] : []),
+    ...page.sections.flatMap((section) =>
+      section.figure ? [section.figure] : [],
+    ),
+  ];
+
   const data: Record<string, unknown>[] = [
     {
       "@context": "https://schema.org",
       "@type": "WebPage",
+      "@id": `${pageUrl}#webpage`,
       name: page.title,
       description: page.description,
-      url: `https://salti8.com/${page.slug}/`,
+      url: pageUrl,
+      inLanguage: "en-US",
+      ...(page.lastUpdated ? { dateModified: page.lastUpdated } : {}),
       isPartOf: {
         "@type": "WebSite",
-        name: "SALTI8",
-        url: "https://salti8.com",
+        name: SITE_NAME,
+        url: absoluteUrl("/"),
+      },
+      publisher: {
+        "@type": "Organization",
+        name: SITE_NAME,
+        url: absoluteUrl("/"),
       },
       about: {
         "@type": "SoftwareApplication",
-        name: "Layer8 Adaptive",
+        name: PRODUCT_NAME,
         applicationCategory: "DeveloperApplication",
       },
+      // Declaring the images here is what makes them eligible for Google Images
+      // against this page rather than as orphaned assets.
+      ...(figures.length
+        ? {
+            primaryImageOfPage: {
+              "@type": "ImageObject",
+              contentUrl: `${SITE_URL}${figures[0].src}`,
+              caption: figures[0].caption,
+              width: figures[0].width,
+              height: figures[0].height,
+            },
+            image: figures.map((figure) => ({
+              "@type": "ImageObject",
+              contentUrl: `${SITE_URL}${figure.src}`,
+              caption: figure.caption,
+              description: figure.alt,
+              width: figure.width,
+              height: figure.height,
+            })),
+          }
+        : {}),
     },
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
-      itemListElement: breadcrumbs,
+      itemListElement: breadcrumbTrail(page),
     },
   ];
+
   if (page.faqs.length) {
     data.push({
       "@context": "https://schema.org",
       "@type": "FAQPage",
+      "@id": `${pageUrl}#faq`,
       mainEntity: page.faqs.map((faq) => ({
         "@type": "Question",
         name: faq.question,
@@ -116,6 +186,44 @@ function structuredData(page: SeoPage) {
     });
   }
   return data;
+}
+
+/**
+ * Diagrams are served as plain <picture>/<img> rather than next/image because
+ * the site is a static export with `images.unoptimized: true` — next/image adds
+ * a wrapper and no optimisation here. Explicit width/height reserve the box so
+ * the diagram cannot shift text that has already painted.
+ */
+function SectionDiagram({
+  figure,
+  eager = false,
+}: {
+  figure: NonNullable<SeoPage["sections"][number]["figure"]>;
+  eager?: boolean;
+}) {
+  return (
+    <figure className="sectionFigure">
+      <picture>
+        {figure.srcSmall ? (
+          <source
+            media="(max-width: 900px)"
+            srcSet={figure.srcSmall}
+            type="image/webp"
+          />
+        ) : null}
+        <img
+          src={figure.src}
+          alt={figure.alt}
+          width={figure.width}
+          height={figure.height}
+          loading={eager ? "eager" : "lazy"}
+          decoding="async"
+          fetchPriority={eager ? "high" : "auto"}
+        />
+      </picture>
+      <figcaption>{figure.caption}</figcaption>
+    </figure>
+  );
 }
 
 export default async function ContentPage({ params }: PageProps) {
@@ -187,6 +295,12 @@ export default async function ContentPage({ params }: PageProps) {
           ) : null}
         </header>
 
+        {page.heroFigure ? (
+          <div className="shell heroFigureShell">
+            <SectionDiagram figure={page.heroFigure} eager />
+          </div>
+        ) : null}
+
         {page.slug === "pricing" ? (
           <div className="shell">
             <CheckoutNotice />
@@ -229,6 +343,9 @@ export default async function ContentPage({ params }: PageProps) {
                       <li key={point}>{point}</li>
                     ))}
                   </ul>
+                ) : null}
+                {section.figure ? (
+                  <SectionDiagram figure={section.figure} eager={index === 0} />
                 ) : null}
               </section>
             ))}

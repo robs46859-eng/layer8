@@ -3,10 +3,31 @@ import {
   teamPriceLabel,
 } from "@/lib/public-pricing";
 
+/**
+ * A diagram rendered inside a content section.
+ *
+ * Dimensions are required. The static export runs with
+ * `images.unoptimized: true`, so the browser gets a plain <img>; without an
+ * intrinsic aspect ratio every diagram causes a layout shift, which is both a
+ * Core Web Vitals (CLS) penalty and a genuinely worse reading experience.
+ *
+ * `srcSmall` is a half-width WebP used below 900px so mobile does not download
+ * a 1376px asset.
+ */
+export type SectionFigure = {
+  src: string;
+  srcSmall?: string;
+  alt: string;
+  caption: string;
+  width: number;
+  height: number;
+};
+
 export type ContentSection = {
   heading: string;
   body: string[];
   points?: string[];
+  figure?: SectionFigure;
 };
 
 export type Faq = {
@@ -34,9 +55,170 @@ export type SeoPage = {
   lastVerified?: string;
   lastUpdated?: string;
   noindex?: boolean;
+  /** Overrides the default social card for pages with their own artwork. */
+  ogImage?: string;
+  /** Lead illustration rendered directly beneath the page hero. */
+  heroFigure?: SectionFigure;
 };
 
+const DIAGRAM_WIDTH = 1376;
+const DIAGRAM_HEIGHT = 736;
+
+function diagram(
+  name: string,
+  alt: string,
+  caption: string,
+): SectionFigure {
+  return {
+    src: `/images/${name}.webp`,
+    srcSmall: `/images/${name}-sm.webp`,
+    alt,
+    caption,
+    width: DIAGRAM_WIDTH,
+    height: DIAGRAM_HEIGHT,
+  };
+}
+
 export const seoPages: SeoPage[] = [
+  {
+    slug: "architecture",
+    title: "Adaptive Spatial Intelligence: The Layer8 Control Architecture",
+    description:
+      "How Layer8, SALTI, and B-HDSR combine into one closed-loop control architecture that turns generative output into validated, repairable, auditable infrastructure.",
+    eyebrow: "Control architecture",
+    heading: "From generative guesses to living, validated infrastructure.",
+    lead:
+      "Most AI systems are open loops: a model generates, the same model approves its own work, and the output ships. This page walks through the alternative — a closed-loop architecture that separates exploration, validation, repair, and human review into distinct, inspectable stages, and explains what each layer is actually responsible for.",
+    keywords: [
+      "adaptive spatial intelligence",
+      "closed-loop AI architecture",
+      "AI validation and repair",
+      "governed adaptability",
+      "multi-agent workflow architecture",
+      "AI control plane architecture",
+      "B-HDSR",
+      "SALTI engine",
+    ],
+    lastUpdated: "July 29, 2026",
+    ogImage: "/images/og/salti8-architecture.png",
+    heroFigure: diagram(
+      "salti8-adaptive-spatial-intelligence",
+      "Split illustration: a grey wireframe engineering drawing on the left transitions into a luminous, layered terrain of flowing teal and amber channels on the right, representing the shift from static generative output to living validated infrastructure.",
+      "Adaptive spatial intelligence — from generative guesses to living, validated infrastructure",
+    ),
+    sections: [
+      {
+        heading: "The problem: open-loop generation cannot be trusted",
+        body: [
+          "In an open-loop system, input goes to a generator and the generator's output goes straight to production. There is no independent check between the two. When the model is right, nothing is wasted. When it is wrong, the failure is silent — the output looks structurally plausible, passes casual review, and only surfaces as a defect much later, usually in front of a user or an auditor.",
+          "The fix is not a better prompt or a larger model. It is architectural. A closed loop separates the act of generating from the act of accepting, and gives each stage its own failure behaviour: exploration produces candidates, validation tests them against independent criteria, and repair is routed by the specific reason validation failed rather than by a blind retry.",
+          "Systems built this way are deliberately incomplete, uncertain, modular, degradable, and repairable. Those are not weaknesses to engineer away — they are the properties that let a system survive contact with real inputs.",
+        ],
+        points: [
+          "Generation is a step, not a verdict",
+          "Validation is independent of the model that generated the work",
+          "Repair is reason-coded and bounded, never an unbounded retry loop",
+          "Human review is a routed outcome, not an afterthought",
+        ],
+        figure: diagram(
+          "salti8-governed-adaptability-loop",
+          "Diagram comparing an open-loop pipeline — input to generator to output, ending in a failure state — with a closed-loop architecture in which exploration feeds validation, and validation feeds reason-routed repair back into the loop.",
+          "Open-loop generation versus a closed loop with validation and reason-routed repair",
+        ),
+      },
+      {
+        heading: "The biological heuristic: structures built to be repaired",
+        body: [
+          "A beaver dam is not engineered to be impermeable. It is engineered to leak in controlled ways, shed sacrificial material under load, distribute stress across interlocking branches, and accumulate new material where pressure is highest. It survives floods precisely because it does not attempt to be perfect.",
+          "The same four properties map directly onto software architecture. Controlled porosity becomes modular data flow through declared interfaces instead of a monolithic black box. Distributed load paths become multi-channel validation, where geometry, semantics, and physics are each tested independently. Sacrificial elements become isolated candidate workspaces, so a failed generation never overwrites a canonical accepted asset. Material recruitment becomes evidence accumulation — new sensor data and human review raise confidence over time rather than being discarded.",
+          "This is why the architecture treats partial failure as normal operating state. A single failed validation channel holds the run; it does not collapse the system.",
+        ],
+        figure: diagram(
+          "salti8-repair-first-structures",
+          "Cutaway diagram of a beaver dam annotated with four physical resilience properties — controlled porosity, distributed load paths, sacrificial elements, and material recruitment — each mapped to a digital equivalent: modular data flow, multi-channel validation, isolated candidate workspaces, and evidence accumulation.",
+          "Four physical resilience properties and their direct software equivalents",
+        ),
+      },
+      {
+        heading: "Three layers, three distinct questions",
+        body: [
+          "The architecture separates into three layers, and the cleanest way to understand the split is by the question each layer answers. Layer8 answers who, what, where, and under which policy a workflow executes. SALTI answers whether exploration was sufficient, whether the resulting condition is acceptable, and whether stated confidence is calibrated. B-HDSR answers which failure mode is currently controlling and whether present capacity still exceeds present load.",
+          "Keeping these boundaries visible is what makes the system auditable. When something goes wrong you can say which layer made the decision, on what evidence, and under which policy version — instead of pointing at a single opaque model and guessing.",
+          "It also makes adoption incremental. A team can run Layer8 alone as a governed multi-provider gateway, then add SALTI's evaluative stages only where the consequence of a silent failure justifies the extra latency and cost.",
+        ],
+        points: [
+          "B-HDSR — resilience intelligence: which failure mode controls, and does capacity exceed load",
+          "SALTI — evaluative intelligence: is exploration sufficient, is condition acceptable, is confidence calibrated",
+          "Layer8 — operational intelligence: who, what, where, and under which policy execution happens",
+        ],
+        figure: diagram(
+          "salti8-governed-adaptability-architecture",
+          "Exploded isometric diagram of three stacked layers: B-HDSR resilience intelligence on top, SALTI evaluative intelligence in the middle, and Layer8 operational intelligence at the base, each annotated with the question it answers.",
+          "The three-layer control stack and the question each layer answers",
+        ),
+      },
+      {
+        heading: "Layer8: the operational substrate",
+        body: [
+          "Layer8 is the substrate everything else runs on. It cryptographically establishes who can request work and isolates project boundaries, so a tenant's context, credentials, and outputs cannot leak across the boundary. It dispatches jobs to specialist tools rather than routing everything through a single monolithic model.",
+          "The digital thread is the part that matters most for accountability. Every state transition — the input, the model selected, the policy applied, the validation result, the repair reason, the approving human — is written to an immutable event ledger. That ledger is what makes a decision reconstructable months later, and what makes rollback a defined operation instead of an archaeology project.",
+          "Policy enforcement runs continuously alongside it: least privilege by default, explicit provider restrictions, and gated approvals that must clear before an asset is delivered.",
+        ],
+        points: [
+          "Identity and tenancy — cryptographically scoped access and project isolation",
+          "Modular routing — dispatch to specialist tools, not one monolithic model",
+          "The digital thread — an immutable event ledger connecting inputs, models, decisions, and outputs",
+          "Policy enforcement — least privilege, provider restrictions, and explicitly gated approvals",
+        ],
+        figure: diagram(
+          "salti8-layer8-operational-substrate",
+          "Diagram of the Layer8 routing hub at the centre, connected to identity, storage, compute, and validator nodes, above a horizontal chain of immutable ledger events representing the digital thread.",
+          "Layer8 routing hub, its connected subsystems, and the immutable event ledger beneath",
+        ),
+      },
+      {
+        heading: "What this buys you in practice",
+        body: [
+          "The practical outcome is that failure becomes visible early and cheap, rather than late and expensive. A validation channel that fails holds the run and emits a reason code. Repair is attempted a bounded number of times against that specific reason. If repair does not clear the gate, the work is routed to a human with the full decision context attached — not dumped as a raw model response for someone to re-derive from scratch.",
+          "Confidence is reported as a calibrated number rather than a model's self-assessment, which means an operations team can set a threshold and mean it. And because every stage writes to the digital thread, an audit does not depend on anyone remembering what happened.",
+          "None of this removes human judgement. It concentrates human judgement on the decisions that actually need it.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "What is adaptive spatial intelligence?",
+        answer:
+          "Adaptive spatial intelligence describes systems that treat spatial and geometric output as living infrastructure to be continuously validated and repaired, rather than as a one-shot generative result. Instead of accepting a model's first output, the system explores candidates, validates them across independent channels such as geometry, semantics, and physics, repairs specific failures, and accumulates evidence over time.",
+      },
+      {
+        question: "What is the difference between open-loop and closed-loop AI architecture?",
+        answer:
+          "In an open loop, a single model both generates and effectively approves its own work, so failures are silent. In a closed loop, exploration, validation, repair, and human review are separate stages with separate failure behaviour, so a failed check holds the run and routes a reason-coded correction instead of shipping a plausible-looking defect.",
+      },
+      {
+        question: "What does B-HDSR stand for and what does it do?",
+        answer:
+          "B-HDSR is the resilience-intelligence layer of the architecture. It determines which failure mode is currently controlling a workflow and whether present capacity still exceeds present load, which is what allows the system to degrade in a controlled way rather than fail all at once.",
+      },
+      {
+        question: "Do I have to adopt all three layers at once?",
+        answer:
+          "No. Layer8 can run on its own as a governed multi-provider gateway with tenant isolation, routing, and an audit ledger. SALTI's evaluative stages and B-HDSR's resilience logic are added where the consequence of a silent failure justifies the additional latency and cost.",
+      },
+      {
+        question: "Why is the architecture compared to a beaver dam?",
+        answer:
+          "A beaver dam survives floods because it is porous, sheds sacrificial material, distributes load across interlocking branches, and recruits new material under pressure — it is built to be repaired rather than to be perfect. Those four properties map directly onto modular data flow, isolated candidate workspaces, multi-channel validation, and evidence accumulation in software.",
+      },
+    ],
+    related: [
+      "salti-b-engine",
+      "ai-governance",
+      "governed-ai-agents",
+      "spatial-intelligence",
+    ],
+  },
   {
     slug: "ai-gateway",
     title: "AI Gateway for Governed Model Execution",
@@ -356,9 +538,15 @@ export const seoPages: SeoPage[] = [
         ],
       },
       {
+        heading: "Recovery is measured—not assumed",
+        body: [
+          "The Beaver Engineering Amplified Vector (BEAV) compares repair and capture rates with loss and decay. It is a design metric that requires domain calibration, not a certified engineering result or a substitute for accountable review.",
+        ],
+      },
+      {
         heading: "Temperature is control state—not truth",
         body: [
-          "SALTI-B temperature expresses controller behavior such as exploration pressure. It is not a physical measurement, calibrated probability, or correctness guarantee. The interface and API must preserve those semantic boundaries.",
+          "The SALTI (Smith Agent Loop Temperature Indicator) expresses closed-loop controller behavior such as exploration pressure within the SALTI-B Engine. It is not a physical measurement, calibrated probability, or correctness guarantee. The interface and API must preserve those semantic boundaries.",
         ],
       },
     ],

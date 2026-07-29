@@ -17,10 +17,17 @@ Consistency in naming establishes authority.
 | Flagship product, first mention | **Layer8 Adaptive by SALTI8** |
 | Flagship product, subsequent mentions | **Layer8 Adaptive** |
 | Core technology | **SALTI-B Engine** |
+| Closed-loop control indicator | **SALTI** — **Smith Agent Loop Temperature Indicator** |
+| Beaver-inspired resilience metric | **BEAV** — **Beaver Engineering Amplified Vector** |
 | Code and packages | `salti8`, `salti_b` |
 
 Use the brand in all caps. Use the domain and package identifiers in lowercase.
 Always capitalize and hyphenate **SALTI-B Engine**.
+Always expand **SALTI** as **Smith Agent Loop Temperature Indicator**. Do not
+use `SATLI` or the former "Temperature Logic" expansion.
+Always expand **BEAV** as **Beaver Engineering Amplified Vector**. Do not use
+the former `ARI`, "Adaptive Recovery Index," "Adaptive Resilience Index," or
+"Adaptive Recovery Ratio" names for that formula.
 
 ## 2. Visual palette: the enterprise suite
 

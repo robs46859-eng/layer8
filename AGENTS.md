@@ -13,6 +13,10 @@ security, or verification requirements below.
 - On first mention, use **Layer8 Adaptive by SALTI8**. Use **Layer8 Adaptive**
   on subsequent mentions.
 - Core reasoning and orchestration engine: **SALTI-B Engine**.
+- Closed-loop control indicator: **SALTI** (**Smith Agent Loop Temperature
+  Indicator**).
+- Beaver-inspired resilience metric: **BEAV** (**Beaver Engineering Amplified
+  Vector**).
 - Primary public domain: `salti8.com`.
 - Use **SALTI8** without a space or hyphen in company and platform branding.
   Reserve **SALTI-B Engine** for the named technical engine.
@@ -21,6 +25,21 @@ security, or verification requirements below.
   provenance, auditability, and spatial-intelligence workflows.
 - Do not reduce the positioning to a generic LLM proxy or make unsupported
   claims about compliance, accuracy, savings, customers, or performance.
+
+## Git Discipline
+
+Run git from a shell with full write access to `.git/`. Some agent sandboxes
+mount this working tree with `unlink` denied; any git command that touches the
+index then creates `.git/index.lock` and cannot remove it, leaving a stale lock
+that blocks every subsequent `add`, `commit`, and `push`.
+
+- Verify the shell can write before running git: `touch .git/.probe && rm
+  .git/.probe`. If `rm` fails, that shell must not run git at all.
+- If a stale lock exists, remove `.git/index.lock` from a shell that can, then
+  re-run `git status` to confirm.
+- Never rewrite published history on `main`. Roll forward with a revert commit.
+- Update all affected documents in `docs/` and `README.md` in the same commit as
+  the change they describe, not in a follow-up.
 
 ## Source of Truth
 

@@ -2042,3 +2042,227 @@ a {
     color: var(--text);
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Section diagrams
+   Rendered inside .contentSections on long-form pages (e.g. /architecture/).
+   width/height are set on the <img> so the box is reserved before decode; the
+   aspect-ratio here keeps that intact once CSS takes over the width.
+   --------------------------------------------------------------------------- */
+.sectionFigure {
+  margin: 34px 0 0;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--slate-950);
+  box-shadow: var(--shadow-acrylic);
+}
+
+.sectionFigure picture,
+.sectionFigure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1376 / 736;
+}
+
+.sectionFigure figcaption {
+  padding: 12px 16px;
+  color: var(--slate-600);
+  background: var(--canvas-raised);
+  border-top: 1px solid var(--line);
+  font-family: var(--font-technical);
+  font-size: 0.62rem;
+  line-height: 1.5;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+/* Full-bleed diagram band used on the home page. */
+.diagramBand {
+  padding-block: clamp(64px, 8vw, 104px);
+  border-block: 1px solid var(--line);
+  background: var(--canvas-muted);
+}
+
+.diagramBandInner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: clamp(32px, 5vw, 72px);
+  align-items: center;
+}
+
+.diagramBandInner h2 {
+  margin: 12px 0 18px;
+}
+
+.diagramBandInner p {
+  max-width: 46ch;
+  color: var(--text-muted);
+}
+
+.diagramBandInner .textLink {
+  margin-top: 20px;
+}
+
+@media (max-width: 900px) {
+  .diagramBandInner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Footer link groups ------------------------------------------------------- */
+.footerNav {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(20px, 3vw, 44px);
+  width: 100%;
+  margin-top: 8px;
+}
+
+.footerNav h2 {
+  margin: 0 0 12px;
+  color: var(--text-muted);
+  font-family: var(--font-technical);
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.footerNav ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 9px;
+}
+
+.footerNav a {
+  color: inherit;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  border-bottom: 1px solid transparent;
+}
+
+.footerNav a:hover,
+.footerNav a:focus-visible {
+  border-bottom-color: currentcolor;
+}
+
+@media (max-width: 760px) {
+  .footerNav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px 20px;
+  }
+}
+
+/* Tap-target floor: 44px is the WCAG 2.5.8 (AA) minimum. -------------------- */
+.primaryNav a,
+.mobileNav nav a,
+.footerNav a,
+.contentRail a {
+  min-height: 24px;
+}
+
+@media (max-width: 760px) {
+  .mobileNav nav a,
+  .footerNav a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .sectionFigure figcaption {
+    color: var(--slate-300);
+  }
+
+  .diagramBand {
+    background: var(--canvas-raised);
+  }
+
+  .diagramBandInner p {
+    color: var(--slate-300);
+  }
+}
+
+.heroFigureShell {
+  margin-top: clamp(28px, 4vw, 44px);
+}
+
+.heroFigureShell .sectionFigure {
+  margin-top: 0;
+}
+
+/* Footer layout -------------------------------------------------------------
+   Two rows: identity + link graph on top, legal meta beneath a hairline. The
+   previous single-row grid could not hold four link columns without crushing
+   them. */
+.footerTop {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 72px);
+  align-items: start;
+}
+
+.footerIdentity p {
+  margin: 10px 0 0;
+  max-width: 30ch;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.footerCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 18px;
+  padding-bottom: 3px;
+  color: var(--terracotta-200);
+  border-bottom: 1px solid color-mix(in srgb, var(--terracotta-200) 45%, transparent);
+  font-size: 0.82rem;
+}
+
+.footerCta:hover,
+.footerCta:focus-visible {
+  color: var(--canvas);
+  border-bottom-color: currentcolor;
+}
+
+.footerBottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px 24px;
+  margin-top: clamp(36px, 5vw, 56px);
+  padding-top: 22px;
+  border-top: 1px solid rgb(255 255 255 / 10%);
+}
+
+.footerBottom .footerMeta {
+  grid-auto-flow: column;
+  gap: 22px;
+}
+
+.footerBottom p {
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: 0.66rem;
+}
+
+@media (max-width: 900px) {
+  .footerTop {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 36px;
+  }
+}
+
+@media (max-width: 620px) {
+  .footerBottom .footerMeta {
+    grid-auto-flow: row;
+    gap: 8px;
+  }
+}

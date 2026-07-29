@@ -1,6 +1,13 @@
 import type { CSSProperties, ReactNode } from "react";
 import Image from "next/image";
-import { MarketingHeader } from "@/components/marketing-shell";
+import { MarketingFooter, MarketingHeader } from "@/components/marketing-shell";
+import {
+  ORG_LEGAL_NAME,
+  PRODUCT_NAME,
+  SITE_NAME,
+  SITE_URL,
+  absoluteUrl,
+} from "@/lib/site";
 
 const cascadeSteps = [
   {
@@ -131,24 +138,56 @@ export default function Home() {
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "SALTI8",
-    url: "https://salti8.com",
+    "@id": `${SITE_URL}/#organization`,
+    name: SITE_NAME,
+    legalName: ORG_LEGAL_NAME,
+    url: absoluteUrl("/"),
+    logo: {
+      "@type": "ImageObject",
+      url: `${SITE_URL}/images/salti8-mark-512.png`,
+      width: 512,
+      height: 512,
+    },
     description:
       "SALTI8 develops governed AI execution infrastructure for reliable multi-provider and agent workflows.",
+    contactPoint: [
+      {
+        "@type": "ContactPoint",
+        contactType: "sales",
+        url: absoluteUrl("contact"),
+        availableLanguage: ["en"],
+      },
+    ],
+  };
+
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${SITE_URL}/#website`,
+    name: SITE_NAME,
+    url: absoluteUrl("/"),
+    inLanguage: "en-US",
+    publisher: { "@id": `${SITE_URL}/#organization` },
   };
 
   const softwareSchema = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: "Layer8 Adaptive",
+    "@id": `${SITE_URL}/#software`,
+    name: PRODUCT_NAME,
     applicationCategory: "DeveloperApplication",
     operatingSystem: "Cloud",
-    creator: {
-      "@type": "Organization",
-      name: "SALTI8",
-    },
+    url: absoluteUrl("/"),
+    creator: { "@id": `${SITE_URL}/#organization` },
     description:
       "A governed AI execution platform for model routing, durable cascades, bounded repair, human approval, and provenance.",
+    featureList: [
+      "Multi-provider model routing and failover",
+      "Independent multi-channel validation",
+      "Bounded, reason-coded repair",
+      "Human approval gates",
+      "Immutable provenance ledger",
+    ],
   };
 
   return (
@@ -156,10 +195,11 @@ export default function Home() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([organizationSchema, softwareSchema]).replace(
-            /</g,
-            "\\u003c",
-          ),
+          __html: JSON.stringify([
+            organizationSchema,
+            websiteSchema,
+            softwareSchema,
+          ]).replace(/</g, "\\u003c"),
         }}
       />
 
@@ -302,10 +342,51 @@ export default function Home() {
           </div>
         </section>
 
+        <section className="diagramBand" id="closed-loop" aria-labelledby="closed-loop-title">
+          <div className="shell diagramBandInner">
+            <div>
+              <p className="eyebrow">04 · Why the loop has to close</p>
+              <h2 id="closed-loop-title">
+                Open-loop AI ships plausible defects.
+              </h2>
+              <p>
+                When one model both generates the work and approves it, failure
+                is silent — the output looks right, passes casual review, and
+                surfaces later as a defect. Closing the loop separates
+                exploration, validation, and reason-routed repair so a failed
+                check holds the run instead of shipping it.
+              </p>
+              <a className="textLink" href="/architecture/">
+                Read the control architecture <ArrowIcon />
+              </a>
+            </div>
+            <figure className="sectionFigure">
+              <picture>
+                <source
+                  media="(max-width: 900px)"
+                  srcSet="/images/salti8-governed-adaptability-loop-sm.webp"
+                  type="image/webp"
+                />
+                <img
+                  src="/images/salti8-governed-adaptability-loop.webp"
+                  alt="Diagram contrasting an open-loop pipeline that ends in a failure state with a closed-loop architecture where exploration, validation, and reason-routed repair feed back into each other."
+                  width={1376}
+                  height={736}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </picture>
+              <figcaption>
+                Open-loop generation versus a closed validation and repair loop
+              </figcaption>
+            </figure>
+          </div>
+        </section>
+
         <section className="section shell" id="governance">
           <div className="governanceGrid">
             <div className="sectionHeading governanceCopy">
-              <p className="eyebrow">04 · Evidence before confidence</p>
+              <p className="eyebrow">05 · Evidence before confidence</p>
               <h2>Control that survives the audit.</h2>
               <p>
                 Layer8 is designed to retain the tenant, policy, provider,
@@ -368,7 +449,7 @@ export default function Home() {
         <section className="pilotSection" id="pilot">
           <div className="shell pilotInner">
             <div>
-              <p className="eyebrow">05 · Private pilot</p>
+              <p className="eyebrow">06 · Private pilot</p>
               <h2>Bring one workflow that cannot afford a silent failure.</h2>
             </div>
             <p>
@@ -383,21 +464,10 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="siteFooter">
-        <div className="shell footerInner">
-          <div>
-            <a className="brand footerBrand" href="/">
-              SALTI<span>8</span>
-            </a>
-            <p>Industrial precision for governed intelligence.</p>
-          </div>
-          <div className="footerMeta">
-            <span>Layer8 Adaptive by SALTI8</span>
-            <span>Powered by the SALTI-B Engine</span>
-          </div>
-          <p>© 2026 SALTI8 Labs</p>
-        </div>
-      </footer>
+      {/* The home page previously shipped a link-free footer, which left every
+          deep page reachable only from the sitemap. Sharing MarketingFooter
+          gives the crawler the same one-hop link graph as every other page. */}
+      <MarketingFooter />
     </>
   );
 }

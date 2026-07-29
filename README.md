@@ -40,9 +40,33 @@ the customer session maps to a Layer8 tenant; authenticated FastAPI customer
 endpoints then create Stripe Checkout and customer-portal sessions without
 exposing Stripe or Layer8 credentials to the browser. See:
 
+- `docs/architecture/DEPLOYED_BUILD_BLUEPRINT.md`
+- `docs/architecture/ACCESS_AND_ENTITLEMENT_SPECIFICATION.md`
 - `docs/runbooks/HOSTINGER_DEPLOYMENT.md`
+- `docs/runbooks/SEO_AND_INDEXING.md`
 - `docs/runbooks/SANDBOX_AND_FIRST_CUSTOMER.md`
 - `docs/runbooks/STRIPE_LIVE_SETUP.md`
+
+### Public site and search
+
+Public marketing content is data-driven from `apps/web/lib/seo-content.ts`.
+Adding an entry to `seoPages` generates the static route, canonical tag, Open
+Graph and Twitter metadata, `WebPage`/`BreadcrumbList`/`FAQPage` JSON-LD,
+internal links, and the sitemap entry. Absolute URLs come from
+`apps/web/lib/site.ts` — never hard-code the origin elsewhere.
+
+`npm run build` runs `next build` and then `apps/web/scripts/verify-export.mjs`,
+which fails the build if `robots.txt`, `sitemap.xml`, `manifest.webmanifest`,
+`404.html`, `.htaccess`, the icon set, the social cards, or any required route
+is missing from `out/`, or if the sitemap advertises a URL that was not
+exported. `docs/runbooks/SEO_AND_INDEXING.md` is the authority for canonical
+URL shape, indexing policy, and post-deploy verification.
+
+Clerk organization administration and Layer8 platform administration are
+separate. The deployed website currently exposes customer billing and
+entitlements. Platform `/admin` endpoints remain API-only and require the
+separate `ADMIN_API_TOKEN`; a Clerk administrator does not automatically gain
+that access.
 
 The request path is fixed:
 

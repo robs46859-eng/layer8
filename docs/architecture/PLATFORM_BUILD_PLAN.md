@@ -18,6 +18,26 @@
 
 ---
 
+## Current deployed baseline
+
+This file defines the target architecture and delivery sequence. The production
+system is now partially deployed, so current operational claims must be checked
+against:
+
+- `DEPLOYED_BUILD_BLUEPRINT.md` for the verified production topology, release
+  gates and current readiness failures; and
+- `ACCESS_AND_ENTITLEMENT_SPECIFICATION.md` for the Clerk organization,
+  Layer8 tenant, platform-admin and entitlement boundaries.
+
+As verified on July 28, 2026, the Hostinger static site and Clerk customer
+sign-in are live. The authenticated web surface currently provides billing and
+entitlement access only. Platform administration remains API-only behind
+`ADMIN_API_TOKEN`; it is not granted by Clerk. The API process is live, but
+production readiness is failing for Redis, audit storage and the audit queue,
+so the full platform must not be described as operationally ready.
+
+---
+
 ## 1. Executive decision
 
 Build the new platform on top of the existing `robs46859-eng/layer8` repository on `main`.
@@ -72,7 +92,9 @@ Because direct work on `main` removes the normal pull-request safety gate:
 - **Company/umbrella brand:** SALTI8
 - **Commercial product:** Layer8 Adaptive
 - **Agent controller:** SALTI-B Control Engine
+- **Closed-loop control indicator:** SALTI (Smith Agent Loop Temperature Indicator)
 - **Resilience/gating model:** B-HDSR
+- **Beaver-inspired resilience metric:** BEAV (Beaver Engineering Amplified Vector)
 - **Specialist capability catalog:** Module Base
 - **First vertical modules:** Spatial Intelligence, Digital Twins, and Disaster Resilience
 - **Repository:** `layer8`
@@ -85,7 +107,10 @@ Because direct work on `main` removes the normal pull-request safety gate:
 
 “Layer8 Adaptive” remains the commercial product name because it keeps the existing product equity, describes the closed-loop behavior, and does not force customers to understand the SALTI-B acronym before understanding the value.
 
-Keep “SALTI-B” as the distinctive engine name. The acronym is currently inconsistent in the source material: some documents use “SATLI” for Smith Agent Temperature Logic Indicator, while the UI and broader platform use “SALTI” or “SALTI-B.” Resolve this in an architecture decision record and glossary before public launch. The code should use one canonical spelling: `salti_b`.
+Keep “SALTI-B” as the distinctive engine name. **SALTI** canonically expands
+to **Smith Agent Loop Temperature Indicator**, the closed-loop controller
+concept within the engine. Use `SALTI`, never `SATLI`, for the indicator. The
+code should use one canonical engine/package spelling: `salti_b`.
 
 The preferred public lockup is **Layer8 Adaptive by SALTI8**, with **Powered by the SALTI-B Engine** used where the engine distinction helps explain the architecture. Company branding must use `SALTI8` without a space or hyphen; `SALTI-B` is reserved for the engine.
 
@@ -932,7 +957,7 @@ Acceptance:
 - Existing repo cloned and reproducibly installed.
 - All tests pass.
 - Lint is clean or narrowly configured for accepted FastAPI patterns.
-- Architecture decision records cover repository, naming, SALTI/SATLI spelling, frontend stack, workflow durability, and score semantics.
+- Architecture decision records cover repository, naming, the SALTI indicator and SALTI-B engine distinction, frontend stack, workflow durability, and score semantics.
 - Repository ownership chooses and adds an explicit license suitable for the intended open-source/commercial model.
 - `SECURITY.md`, `CODEOWNERS`, contribution guidance, and a responsible disclosure path are added.
 - Original frontend is copied into `frontend-reference/`.

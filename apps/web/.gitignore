@@ -1,0 +1,7 @@
+.vercel
+.env*
+# The example file documents which public build-time values Hostinger needs.
+# It contains no secrets and must stay in version control.
+!.env.example
+out/
+.DS_Store
