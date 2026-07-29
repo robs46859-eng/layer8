@@ -614,6 +614,87 @@ def cmd_export(args: argparse.Namespace) -> int:
     return 0
 
 
+def _admin_request(method: str, path: str, body: object | None = None) -> tuple[int, object]:
+    """Call the platform admin API using the token from env/production.env.
+
+    The token is read from the local file and used in-process. It is never
+    echoed, logged, or passed on a command line where it would land in shell
+    history.
+    """
+    values = load_env_file(ENV_FILE)
+    token = values.get("ADMIN_API_TOKEN", "").strip()
+    if not token:
+        die("ADMIN_API_TOKEN is not set in env/production.env")
+    base = values.get("PUBLIC_API_URL", "https://api.salti8.com").rstrip("/")
+
+    data = json.dumps(body).encode() if body is not None else None
+    request = urllib.request.Request(f"{base}{path}", data=data, method=method)
+    request.add_header("Authorization", f"Bearer {token}")
+    request.add_header("Accept", "application/json")
+    if data:
+        request.add_header("Content-Type", "application/json")
+    try:
+        with urllib.request.urlopen(request, timeout=90) as response:
+            payload = response.read().decode()
+            return response.status, (json.loads(payload) if payload else None)
+    except urllib.error.HTTPError as exc:
+        payload = exc.read().decode(errors="replace")
+        try:
+            return exc.code, json.loads(payload)
+        except json.JSONDecodeError:
+            return exc.code, payload
+    except urllib.error.URLError as exc:
+        die(f"could not reach the admin API: {exc.reason}")
+    return 0, None
+
+
+def _print_tenant(tenant: dict) -> None:
+    org = tenant.get("clerk_organization_id") or "(none)"
+    print(f"  {tenant['id']:<24} {tenant['status']:<10} {org:<36} {tenant['name']}")
+
+
+def cmd_tenant(args: argparse.Namespace) -> int:
+    if args.action == "list":
+        code, payload = _admin_request("GET", "/admin/tenants")
+        if code != 200:
+            die(f"admin API returned {code}: {payload}")
+        if not payload:
+            print("no tenants")
+            return 0
+        print(f"  {'TENANT ID':<24} {'STATUS':<10} {'CLERK ORG':<36} NAME")
+        for tenant in payload:
+            _print_tenant(tenant)
+        return 0
+
+    if args.action == "create":
+        body = {
+            "tenant_id": args.id,
+            "name": args.name,
+            "clerk_organization_id": args.clerk_org,
+        }
+        if args.residency:
+            body["data_residency"] = args.residency
+        code, payload = _admin_request("POST", "/admin/tenants", body)
+        if code == 201:
+            print("created:")
+            _print_tenant(payload)
+            return 0
+        if code == 400 and isinstance(payload, dict):
+            die(f"rejected: {payload.get('detail')}")
+        die(f"admin API returned {code}: {payload}")
+
+    if args.action == "link":
+        body = {"clerk_organization_id": args.clerk_org}
+        code, payload = _admin_request("PATCH", f"/admin/tenants/{args.id}", body)
+        if code == 200:
+            print("linked:")
+            _print_tenant(payload)
+            return 0
+        die(f"admin API returned {code}: {payload}")
+
+    return 1
+
+
 def cmd_doctor(args: argparse.Namespace) -> int:
     """Read the deployed readiness endpoint and explain each failure."""
     values = load_env_file(ENV_FILE)
@@ -685,14 +766,29 @@ def main() -> int:
     p_export.add_argument("--target", default=HOSTINGER,
                           choices=[HOSTINGER, LOCAL, RENDER_API_SERVICE, RENDER_WORKER])
 
+    p_tenant = sub.add_parser("tenant", help="map a Clerk organization to a tenant")
+    p_tenant.add_argument("action", choices=["list", "create", "link"])
+    p_tenant.add_argument("--id", help="Layer8 tenant id, e.g. tenant_salti8")
+    p_tenant.add_argument("--name", help="human-readable tenant name")
+    p_tenant.add_argument("--clerk-org", dest="clerk_org", help="Clerk org id, org_...")
+    p_tenant.add_argument("--residency", help="optional data residency, e.g. us")
+
     sub.add_parser("doctor", help="read /readyz and explain each failure")
 
     args = parser.parse_args()
+
+    if args.command == "tenant":
+        if args.action == "create" and not (args.id and args.name and args.clerk_org):
+            die("create needs --id, --name and --clerk-org")
+        if args.action == "link" and not (args.id and args.clerk_org):
+            die("link needs --id and --clerk-org")
+
     handlers = {
         "validate": cmd_validate,
         "diff": cmd_diff,
         "push": cmd_push,
         "export": cmd_export,
+        "tenant": cmd_tenant,
         "doctor": cmd_doctor,
     }
     return handlers[args.command](args)
