@@ -171,26 +171,27 @@ intended state, not an error to fix.
 
 ---
 
-## 8. Secondary hosts (Vercel preview)
+## 8. One host, one origin
 
-`apps/web/.vercel/project.json` links this directory to the Vercel project
-`layer8-web`. Any Vercel deployment publishes a full copy of the site at a
-`*.vercel.app` hostname, which is a duplicate of production.
+**Hostinger is the only host for salti8.com.** Vercel was unlinked on
+July 29, 2026: `apps/web/vercel.json` and `apps/web/.vercel/` were deleted.
 
-Two controls keep that from splitting ranking signal:
+The reason is an SEO one, not a preference. Any second host publishes a
+complete copy of the site at another hostname — a `*.vercel.app` domain, for
+instance — and a full duplicate competing with production splits ranking signal
+between the two. A static marketing export gains nothing from a second host to
+justify that cost.
 
-1. Set `NEXT_PUBLIC_SITE_URL=https://salti8.com` in the Vercel project's
-   environment for **all** environments. Every page on the `*.vercel.app` copy
-   then emits a canonical pointing at production, which is the correct
-   cross-domain canonical pattern.
-2. Enable **Vercel Deployment Protection** (Settings → Deployment Protection) so
-   preview URLs require authentication and are never crawlable.
+If a second host is ever reintroduced, two controls are mandatory before its
+first deploy:
 
-`apps/web/vercel.json` sets `outputDirectory: "out"` and `trailingSlash: true`
-to match `next.config.ts`. The previous value of `.next` was wrong for an
-`output: "export"` build and would have deployed the wrong directory.
+1. Set `NEXT_PUBLIC_SITE_URL=https://salti8.com` in that host's environment for
+   **every** environment, so the duplicate emits canonicals pointing at
+   production. This is the correct cross-domain canonical pattern.
+2. Put the deployment behind authentication so preview URLs are never
+   crawlable.
 
-Do not point `salti8.com` at both Hostinger and Vercel. One apex, one host.
+Do not point `salti8.com` at two hosts. One apex, one origin.
 
 ## 9. Content maintenance
 

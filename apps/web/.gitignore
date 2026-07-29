@@ -1,3 +1,5 @@
+# Vercel was unlinked on 2026-07-29; salti8.com has one host, Hostinger.
+# Kept ignored so an accidental `vercel link` cannot re-enter version control.
 .vercel
 .env*
 # The example file documents which public build-time values Hostinger needs.
