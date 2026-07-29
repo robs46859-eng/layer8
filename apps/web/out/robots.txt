@@ -1,0 +1,8 @@
+User-Agent: *
+Allow: /
+Disallow: /app/
+Disallow: /account/
+Disallow: /api/
+
+Host: https://salti8.com
+Sitemap: https://salti8.com/sitemap.xml

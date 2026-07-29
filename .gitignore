@@ -14,7 +14,6 @@ build/
 *.egg-info/
 node_modules/
 .next/
-apps/web/out/
 .turbo/
 npm-debug.log*
 *.tsbuildinfo

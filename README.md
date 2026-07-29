@@ -1,9 +1,26 @@
-# Enterprise AI Routing Proxy
+# SALTI8
 
-FastAPI scaffold for a tenant-aware AI routing proxy with both a memory-backed dev mode and a self-hosted mode using PostgreSQL, Redis, MinIO/S3, and an SQS-compatible queue.
+SALTI8 is the product repository for **Layer8 Adaptive by SALTI8**, a
+tenant-aware AI execution gateway with authentication, policy enforcement,
+provider routing, usage controls, billing, and operational evidence.
 
-This repository also contains the SALTI8 Next.js application in `apps/web`.
-Hostinger builds that workspace and serves the generated static files:
+The repository combines:
+
+- the SALTI8 marketing and customer application in `apps/web`;
+- the FastAPI gateway and billing API in `app`;
+- PostgreSQL, Redis, S3-compatible archive, and queue integrations;
+- deployment, migration, and launch runbooks in `docs/runbooks`.
+
+## Production architecture
+
+| Surface | Address | Responsibility |
+| --- | --- | --- |
+| Web | `https://salti8.com` | Static marketing, authentication, and billing UI |
+| API | `https://api.salti8.com` | Authenticated gateway, customer billing, and Stripe webhooks |
+| Identity | Clerk | User sessions and customer organizations |
+| Billing | Stripe | Checkout, subscriptions, invoices, and customer portal |
+
+Hostinger serves a static Next.js export:
 
 ```bash
 npm ci
@@ -55,7 +72,8 @@ The request path is fixed:
 ## Quick Start
 
 ```bash
-cd /Users/robert/layer8
+git clone https://github.com/robs46859-eng/layer8.git
+cd layer8
 python -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
