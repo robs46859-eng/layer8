@@ -38,7 +38,9 @@ signed Stripe webhook are deployed separately at `https://api.salti8.com`.
 Customer authentication uses Clerk Organizations. The signed organization in
 the customer session maps to a Layer8 tenant; authenticated FastAPI customer
 endpoints then create Stripe Checkout and customer-portal sessions without
-exposing Stripe or Layer8 credentials to the browser. See:
+exposing Stripe or Layer8 credentials to the browser. In the public production
+environment, an individual can sign up, name a workspace, and receive that
+isolated tenant mapping automatically before choosing a plan. See:
 
 - `docs/architecture/DEPLOYED_BUILD_BLUEPRINT.md`
 - `docs/architecture/ACCESS_AND_ENTITLEMENT_SPECIFICATION.md`

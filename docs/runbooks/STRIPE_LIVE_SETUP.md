@@ -12,6 +12,7 @@ authoritative source for access changes.
 - Customer billing status: `GET https://api.salti8.com/v1/customer/billing`
 - Customer Checkout: `POST https://api.salti8.com/v1/customer/billing/checkout`
 - Customer portal: `POST https://api.salti8.com/v1/customer/billing/portal`
+- Customer API keys: `GET/POST https://api.salti8.com/v1/customer/billing/api-keys`
 - Stripe webhook: `POST https://api.salti8.com/v1/webhooks/stripe`
 - Checkout return page: `https://salti8.com/billing/success`
 
@@ -23,7 +24,9 @@ webhook signing secret.
 The `/v1/customer/billing` endpoints accept a short-lived Clerk session token.
 The API verifies its signature, issuer, expiration, and authorized party, then
 maps the active Clerk organization to a Layer8 tenant. The browser never sends
-or chooses a tenant ID.
+or chooses a tenant ID. With `SELF_SERVICE_SIGNUP_ENABLED=true`, a verified
+organization that does not yet have a mapping receives a deterministic,
+isolated Layer8 tenant automatically on its first billing request.
 
 ## Required live configuration
 
@@ -42,11 +45,16 @@ STRIPE_PORTAL_CONFIGURATION_ID=bpc_...
 CLERK_JWT_KEY=-----BEGIN PUBLIC KEY-----...
 CLERK_ISSUER=https://your-instance.clerk.accounts.dev
 CLERK_AUTHORIZED_PARTIES=https://salti8.com
+SELF_SERVICE_SIGNUP_ENABLED=true
 ```
 
 Create recurring monthly Prices in the live Stripe account and place their
 Price IDs in the matching variables. The backend accepts only these allowlisted
 plans; clients cannot submit arbitrary Stripe Price IDs.
+
+In Clerk, enable Organizations and allow verified users to create
+organizations. The website presents this as naming a workspace; the resulting
+signed `org_id` remains the tenant-isolation boundary.
 
 ## Webhook listeners
 
@@ -81,12 +89,13 @@ replace the local feature list when Stripe Billing Entitlements is configured.
    manager.
 8. Set live Price IDs and `STRIPE_LIVE_MODE=true`.
 9. Run database migration `20260728_0003`.
-10. Complete one live low-value subscription with an approved test tenant,
+10. Complete one live low-value subscription with a new self-service account,
     confirm the billing account becomes `active`, open the customer portal,
     then cancel/refund according to the test plan.
 
-Before the customer can check out, link their Clerk organization to the tenant
-through the admin API's `clerk_organization_id` field.
+When self-service signup is disabled, an administrator must link the customer's
+Clerk organization through the admin API before checkout. Keep it disabled in
+private or approval-only environments.
 
 Browser redirects are not proof of payment. Provisioning happens only after a
 verified webhook is processed and recorded in `stripe_webhook_events`.

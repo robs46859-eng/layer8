@@ -67,6 +67,12 @@ real routed inference; do not expose it to the web application.
 
 ## First customer sequence
 
+For the public self-service path, set `SELF_SERVICE_SIGNUP_ENABLED=true`. A new
+customer signs up, names a workspace, and opens Billing & Entitlements. The
+verified Clerk organization is mapped to a new Layer8 tenant automatically.
+
+For a private or approval-only environment, leave self-service disabled and:
+
 1. Create a Clerk Organization for the customer and invite the customer
    administrator by email.
 2. Copy the Clerk Organization ID, such as `org_...`.

@@ -146,10 +146,11 @@ Layer8 tenant.
 The authenticated website currently implements:
 
 - Clerk sign-in and sign-up;
-- active-organization selection;
+- self-service workspace creation and active-organization selection;
 - subscription status;
 - Stripe Checkout initiation;
 - Stripe customer-portal initiation; and
+- paid customer API-key creation; and
 - active-entitlement display.
 
 The target dashboard, playground, integration management, provider management,
@@ -175,7 +176,8 @@ The API requires:
 
 - PostgreSQL and Redis connection URLs;
 - `ADMIN_API_TOKEN`;
-- `CLERK_JWT_KEY`, `CLERK_ISSUER` and `CLERK_AUTHORIZED_PARTIES`;
+- `CLERK_JWT_KEY`, `CLERK_ISSUER`, `CLERK_AUTHORIZED_PARTIES` and
+  `SELF_SERVICE_SIGNUP_ENABLED`;
 - Stripe secret, webhook, mode and price configuration;
 - S3-compatible bucket, endpoint and credentials;
 - SQS-compatible queue URL, endpoint and credentials; and

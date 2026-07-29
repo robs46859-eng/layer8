@@ -1,3 +1,4 @@
+import hashlib
 import hmac
 from collections.abc import Iterator
 from typing import Annotated
@@ -6,11 +7,13 @@ import jwt
 from fastapi import Depends, Header, HTTPException, status
 from jwt import InvalidTokenError
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.db.models import Tenant
 from app.db.session import get_session_factory
+from app.services.tenants import TenantService
 
 
 def get_db_session() -> Iterator:
@@ -106,6 +109,22 @@ def require_customer_tenant(
     tenant = session.scalar(
         select(Tenant).where(Tenant.clerk_organization_id == organization_id)
     )
+    if tenant is None and settings.self_service_signup_enabled:
+        organization_digest = hashlib.sha256(organization_id.encode()).hexdigest()
+        try:
+            tenant = TenantService(session).create_tenant(
+                tenant_id=f"tenant_self_{organization_digest[:24]}",
+                name=f"Self-service workspace {organization_digest[:12]}",
+                data_residency=None,
+                clerk_organization_id=organization_id,
+            )
+        except IntegrityError:
+            session.rollback()
+            tenant = session.scalar(
+                select(Tenant).where(
+                    Tenant.clerk_organization_id == organization_id
+                )
+            )
     if tenant is None or tenant.status != "active":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

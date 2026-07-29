@@ -49,7 +49,8 @@ The customer billing screen requires:
 4. a session token containing `org_id`;
 5. a valid token issuer and signature;
 6. an allowed `azp` value from `CLERK_AUTHORIZED_PARTIES`;
-7. exactly one active Layer8 tenant mapped to that Clerk organization ID; and
+7. exactly one active Layer8 tenant mapped to that Clerk organization ID, or
+   `SELF_SERVICE_SIGNUP_ENABLED=true` so the API can create that mapping; and
 8. successful API readiness for the backing services needed by the request.
 
 ### 4.2 Platform admin API
@@ -71,6 +72,15 @@ tenant status, subscription status, required entitlement, model allowlist,
 scope, rate limit and policy enforcement.
 
 ## 5. First workspace activation
+
+In the public self-service environment, a customer creates a Clerk account,
+names a workspace, and selects it. The first authenticated billing request
+creates a deterministic Layer8 tenant for the verified Clerk organization. The
+customer can then subscribe and, after the signed Stripe webhook grants
+`api_access`, create up to two scoped API keys from the billing screen.
+
+Private environments can keep `SELF_SERVICE_SIGNUP_ENABLED=false` and use the
+manual activation sequence below.
 
 ### Step 1 — restore the production control plane
 
@@ -147,10 +157,11 @@ may update subscription and entitlement state.
 
 ## 6. Current gated surface
 
-The website currently exposes Billing & Entitlements only. It does not expose:
+The website currently exposes Billing & Entitlements and customer API-key
+creation. It does not expose:
 
 - Layer8 platform tenant administration;
-- service API-key creation or rotation;
+- service API-key rotation or revocation;
 - provider credential management;
 - routing-policy administration;
 - the target Layer8 dashboard or playground;
@@ -163,8 +174,8 @@ Those functions remain API-only or are roadmap items.
 
 | Observed result | Meaning | Correct action |
 | --- | --- | --- |
-| Billing page says `Organization required` | User is signed in, but the session has no active `org_id` | Create/invite/select the Clerk organization |
-| API says `organization is not linked to an active Layer8 tenant` | Clerk organization exists, but no active tenant mapping matches it | Create or patch the Layer8 tenant mapping |
+| Billing page says `Create your workspace` | User is signed in, but the session has no active `org_id` | Name a workspace or select an existing one |
+| API says `organization is not linked to an active Layer8 tenant` | No active tenant mapping exists and self-service is disabled | Create or patch the mapping, or enable self-service for that environment |
 | `/admin/tenants` returns `503` | `ADMIN_API_TOKEN` is absent | Configure the Render secret and redeploy |
 | `/admin/tenants` returns `401` without a token | Admin gate is configured and denying anonymous access | Expected result |
 | Customer billing returns `401` without a token | Customer auth boundary is live | Expected result |
@@ -180,9 +191,13 @@ Access is correctly provisioned only when:
 - an authenticated user without an organization is held at the organization
   gate;
 - an authenticated member of an unmapped organization receives a controlled
-  `403`;
+  `403` when self-service is disabled;
+- an authenticated member of an unmapped organization receives one isolated,
+  deterministic tenant when self-service is enabled;
 - an authenticated member of the mapped active organization receives only
   that tenant's billing state;
+- API-key creation requires an active paid state and `api_access`;
+- no more than two active customer-created API keys are allowed per tenant;
 - a different organization cannot read or mutate the tenant;
 - anonymous admin access returns `401`;
 - an invalid admin token returns `403`;

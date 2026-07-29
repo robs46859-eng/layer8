@@ -118,6 +118,8 @@ services:
         value: "4096"
       - key: BILLING_PAST_DUE_GRACE_DAYS
         value: "3"
+      - key: SELF_SERVICE_SIGNUP_ENABLED
+        value: "true"
       - key: STARTUP_CHECKS_ENABLED
         value: "true"
       - key: STARTUP_CHECKS_STRICT

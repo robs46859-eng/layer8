@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  CreateOrganization,
   OrganizationSwitcher,
   UserButton,
   useAuth,
@@ -14,6 +15,14 @@ type BillingAccount = {
   cancel_at_period_end: boolean;
   current_period_end: string | null;
   entitlements: string[];
+};
+
+type CustomerApiKey = {
+  id: string;
+  prefix: string;
+  scopes: string[];
+  status: string;
+  created_at: string;
 };
 
 function readError(payload: unknown): string {
@@ -119,6 +128,8 @@ export function BillingDashboard({
 }) {
   const { getToken, isLoaded, isSignedIn, orgId } = useAuth();
   const [account, setAccount] = useState<BillingAccount | null>(null);
+  const [apiKeys, setApiKeys] = useState<CustomerApiKey[]>([]);
+  const [newApiKey, setNewApiKey] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState("");
   const normalizedApiBaseUrl = apiBaseUrl.replace(/\/+$/, "");
@@ -186,6 +197,41 @@ export function BillingDashboard({
     };
   }, [customerRequest, isLoaded, isSignedIn, orgId]);
 
+  useEffect(() => {
+    if (
+      !account ||
+      !["active", "trialing", "past_due"].includes(account.subscription_status) ||
+      !account.entitlements.includes("api_access")
+    ) {
+      setApiKeys([]);
+      return;
+    }
+
+    let current = true;
+    void customerRequest("/v1/customer/billing/api-keys")
+      .then(async (response) => {
+        const payload = await readPayload(response);
+        if (!response.ok) {
+          throw new Error(readError(payload));
+        }
+        if (current) {
+          setApiKeys(payload as CustomerApiKey[]);
+        }
+      })
+      .catch((reason: unknown) => {
+        if (current) {
+          setError(
+            reason instanceof Error
+              ? reason.message
+              : "Your API keys could not be loaded.",
+          );
+        }
+      });
+    return () => {
+      current = false;
+    };
+  }, [account, customerRequest]);
+
   async function openBilling(path: "checkout" | "portal", planKey?: string) {
     setPending(path);
     setError("");
@@ -221,6 +267,36 @@ export function BillingDashboard({
     }
   }
 
+  async function createApiKey() {
+    setPending("api-key");
+    setError("");
+    setNewApiKey("");
+    try {
+      const response = await customerRequest(
+        "/v1/customer/billing/api-keys",
+        { method: "POST" },
+      );
+      const payload = await readPayload(response);
+      if (!response.ok) {
+        throw new Error(readError(payload));
+      }
+      const created = payload as CustomerApiKey & { api_key?: string };
+      if (!created.api_key) {
+        throw new Error("The API service did not return a new key.");
+      }
+      setApiKeys((current) => [...current, created]);
+      setNewApiKey(created.api_key);
+    } catch (reason: unknown) {
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "Your API key could not be created.",
+      );
+    } finally {
+      setPending("");
+    }
+  }
+
   if (!isLoaded) {
     return (
       <AccountGate eyebrow="Customer control plane" heading="Loading account.">
@@ -246,13 +322,17 @@ export function BillingDashboard({
   if (!orgId) {
     return (
       <AccountGate
-        eyebrow="Organization required"
-        heading="Select your workspace."
+        eyebrow="Create your workspace"
+        heading="One step before checkout."
       >
         <p>
-          Billing is organization-scoped. Use the organization selector above
-          to choose the workspace linked to your Layer8 tenant.
+          Name your workspace to create its private Layer8 tenant automatically.
+          You can use your own name if you are signing up individually.
         </p>
+        <CreateOrganization
+          afterCreateOrganizationUrl="/app/billing/"
+          skipInvitationScreen
+        />
       </AccountGate>
     );
   }
@@ -392,6 +472,41 @@ export function BillingDashboard({
             <p>No paid entitlements have been provisioned yet.</p>
           )}
         </section>
+
+        {account?.entitlements.includes("api_access") ? (
+          <section className="entitlementList">
+            <p className="eyebrow">API access</p>
+            <h2>Connect your first application.</h2>
+            <p>
+              Create a scoped API key after payment. The complete key is shown
+              once; store it in your application&apos;s secret manager.
+            </p>
+            {apiKeys.length ? (
+              <ul>
+                {apiKeys.map((apiKey) => (
+                  <li key={apiKey.id}>
+                    {apiKey.prefix} · {apiKey.status}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No API keys have been created.</p>
+            )}
+            {newApiKey ? (
+              <div className="authNotice" role="status">
+                <strong>Copy this key now. It will not be shown again.</strong>
+                <code>{newApiKey}</code>
+              </div>
+            ) : null}
+            <button
+              className="button buttonPrimary"
+              disabled={Boolean(pending) || apiKeys.filter((key) => key.status === "active").length >= 2}
+              onClick={() => void createApiKey()}
+            >
+              {pending === "api-key" ? "Creating…" : "Create API key"}
+            </button>
+          </section>
+        ) : null}
       </section>
     </main>
   );

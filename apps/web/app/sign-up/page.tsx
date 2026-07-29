@@ -20,11 +20,11 @@ export default function CustomerSignUpPage() {
           <p className="eyebrow">Customer registration</p>
           <h1>Create your governed workspace.</h1>
           <p>
-            Registration is for invited customer administrators. If you do not
-            have an invitation, request pilot access first.
+            Sign up as an individual or a team. After registration, name your
+            workspace and choose a plan through secure Stripe Checkout.
           </p>
-          <a className="textLink" href="/pilot/">
-            Request pilot access
+          <a className="textLink" href="/pricing/">
+            Review plans
           </a>
         </div>
         {clerkConfigured ? (

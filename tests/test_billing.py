@@ -36,6 +36,7 @@ def _build_client(db_path: Path) -> TestClient:
     os.environ["STRIPE_LIVE_MODE"] = "false"
     os.environ["CLERK_JWT_KEY"] = ""
     os.environ["CLERK_ISSUER"] = ""
+    os.environ["SELF_SERVICE_SIGNUP_ENABLED"] = "false"
     _reset_settings()
     engine = create_engine(
         f"sqlite:///{db_path}",
@@ -333,3 +334,57 @@ def test_customer_billing_uses_signed_organization_identity(tmp_path):
         headers={"Authorization": f"Bearer {wrong_organization_token}"},
     )
     assert forbidden.status_code == 403
+
+    os.environ["SELF_SERVICE_SIGNUP_ENABLED"] = "true"
+    _reset_settings()
+    provisioned = client.get(
+        "/v1/customer/billing",
+        headers={"Authorization": f"Bearer {wrong_organization_token}"},
+    )
+    assert provisioned.status_code == 200
+    assert provisioned.json()["tenant_id"].startswith("tenant_self_")
+    assert provisioned.json()["plan_key"] == "developer"
+
+    repeated = client.get(
+        "/v1/customer/billing",
+        headers={"Authorization": f"Bearer {wrong_organization_token}"},
+    )
+    assert repeated.status_code == 200
+    assert repeated.json()["tenant_id"] == provisioned.json()["tenant_id"]
+
+    unpaid_key = client.post(
+        "/v1/customer/billing/api-keys",
+        headers={"Authorization": f"Bearer {wrong_organization_token}"},
+    )
+    assert unpaid_key.status_code == 402
+
+    with Session(get_engine()) as session:
+        account = session.scalar(
+            select(BillingAccount).where(
+                BillingAccount.tenant_id == provisioned.json()["tenant_id"]
+            )
+        )
+        assert account is not None
+        account.subscription_status = "active"
+        account.plan_key = "team"
+        account.entitlements = ["api_access", "provider_routing"]
+        session.commit()
+
+    created_key = client.post(
+        "/v1/customer/billing/api-keys",
+        headers={"Authorization": f"Bearer {wrong_organization_token}"},
+    )
+    assert created_key.status_code == 201
+    assert created_key.json()["api_key"].startswith(
+        f"{created_key.json()['prefix']}."
+    )
+    assert created_key.json()["scopes"] == ["inference:invoke"]
+
+    listed_keys = client.get(
+        "/v1/customer/billing/api-keys",
+        headers={"Authorization": f"Bearer {wrong_organization_token}"},
+    )
+    assert listed_keys.status_code == 200
+    assert [key["id"] for key in listed_keys.json()] == [
+        created_key.json()["id"]
+    ]

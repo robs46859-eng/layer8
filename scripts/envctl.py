@@ -251,6 +251,8 @@ MANIFEST: tuple[Var, ...] = (
     Var("CLERK_ISSUER", BACKEND, "Clerk issuer URL", validators=(https_url,)),
     Var("CLERK_AUTHORIZED_PARTIES", BACKEND, "Accepted azp claims",
         validators=(comma_separated_https,)),
+    Var("SELF_SERVICE_SIGNUP_ENABLED", BACKEND, "Provision verified Clerk organizations",
+        validators=(one_of("true", "false"),)),
 
     # --- platform admin ---------------------------------------------------
     Var("ADMIN_API_TOKEN", BACKEND, "Bearer token for /admin. Empty makes /admin "

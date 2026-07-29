@@ -12,6 +12,7 @@ from app.api.dependencies import (
 )
 from app.core.config import get_settings
 from app.db.models import Tenant
+from app.schemas.admin import APIKeyCreateResponse, APIKeyResponse
 from app.schemas.billing import (
     BillingAccountResponse,
     CheckoutSessionRequest,
@@ -21,7 +22,13 @@ from app.schemas.billing import (
     CustomerPortalResponse,
     StripeWebhookResponse,
 )
+from app.services.api_keys import APIKeyAdminService
 from app.services.billing import StripeBillingService
+from app.services.entitlements import (
+    BillingAccessError,
+    EntitlementAccessError,
+    enforce_entitlement,
+)
 
 billing_router = APIRouter(
     prefix="/v1/billing",
@@ -103,6 +110,67 @@ def get_customer_billing_account(
     account = StripeBillingService(session, get_settings()).get_billing_account(tenant.id)
     session.commit()
     return BillingAccountResponse.model_validate(account, from_attributes=True)
+
+
+def _customer_api_key_response(api_key) -> APIKeyResponse:
+    return APIKeyResponse.model_validate(api_key, from_attributes=True)
+
+
+def _require_api_key_entitlement(account) -> None:
+    try:
+        enforce_entitlement(
+            subscription_status=account.subscription_status,
+            payment_grace_ends_at=account.payment_grace_ends_at,
+            entitlements=set(account.entitlements or []),
+            required_entitlement="api_access",
+        )
+    except BillingAccessError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail=str(exc),
+        ) from exc
+    except EntitlementAccessError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        ) from exc
+
+
+@customer_billing_router.get("/api-keys", response_model=list[APIKeyResponse])
+def list_customer_api_keys(
+    tenant: CustomerTenant,
+    session: DbSession,
+) -> list[APIKeyResponse]:
+    account = StripeBillingService(session, get_settings()).get_billing_account(tenant.id)
+    _require_api_key_entitlement(account)
+    keys = APIKeyAdminService(session).list_api_keys(tenant.id)
+    return [_customer_api_key_response(api_key) for api_key in keys]
+
+
+@customer_billing_router.post(
+    "/api-keys",
+    response_model=APIKeyCreateResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_customer_api_key(
+    tenant: CustomerTenant,
+    session: DbSession,
+) -> APIKeyCreateResponse:
+    account = StripeBillingService(session, get_settings()).get_billing_account(tenant.id)
+    _require_api_key_entitlement(account)
+    service = APIKeyAdminService(session)
+    active_keys = [key for key in service.list_api_keys(tenant.id) if key.status == "active"]
+    if len(active_keys) >= 2:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="revoke an existing API key before creating another",
+        )
+    scopes = ["inference:invoke"]
+    if "spatial_intelligence" in set(account.entitlements or []):
+        scopes.append("spatial:invoke")
+    api_key, raw_key = service.create_api_key(tenant.id, scopes, [])
+    payload = _customer_api_key_response(api_key).model_dump()
+    return APIKeyCreateResponse(**payload, api_key=raw_key)
 
 
 @customer_billing_router.post("/checkout", response_model=CheckoutSessionResponse)

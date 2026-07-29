@@ -60,6 +60,10 @@ class Settings(BaseSettings):
         default="http://localhost:3000,https://salti8.com",
         alias="CLERK_AUTHORIZED_PARTIES",
     )
+    self_service_signup_enabled: bool = Field(
+        default=False,
+        alias="SELF_SERVICE_SIGNUP_ENABLED",
+    )
     cors_allowed_origins: str = Field(
         default=(
             "http://localhost:3000,http://127.0.0.1:3000,"
