@@ -18,6 +18,11 @@ node_modules/
 npm-debug.log*
 *.tsbuildinfo
 .DS_Store
-apps/web/out/
 env/*.env
 !env/*.env.example
+
+# apps/web/out/ is deliberately NOT ignored.
+# Hostinger runs no build step — its deployment only runs `npm ci` and then
+# serves the committed apps/web/out/ directory verbatim. The static export is
+# therefore a build artifact that must be committed, or the site never updates.
+# See docs/runbooks/HOSTINGER_DEPLOYMENT.md.

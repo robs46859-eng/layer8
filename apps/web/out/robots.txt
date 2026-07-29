@@ -3,6 +3,9 @@ Allow: /
 Disallow: /app/
 Disallow: /account/
 Disallow: /api/
+Disallow: /sign-in/
+Disallow: /sign-up/
+Disallow: /billing/
 
 Host: https://salti8.com
 Sitemap: https://salti8.com/sitemap.xml
