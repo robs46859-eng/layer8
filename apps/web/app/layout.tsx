@@ -1,6 +1,6 @@
-import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata, Viewport } from "next";
 import { Barlow, Barlow_Condensed } from "next/font/google";
+import { ClerkClientProvider } from "@/components/clerk-client-provider";
 import "./globals.css";
 
 const barlow = Barlow({
@@ -94,7 +94,7 @@ export default function RootLayout({
       className={`${barlow.variable} ${barlowCondensed.variable}`}
     >
       <body>
-        <ClerkProvider>{children}</ClerkProvider>
+        <ClerkClientProvider>{children}</ClerkClientProvider>
       </body>
     </html>
   );

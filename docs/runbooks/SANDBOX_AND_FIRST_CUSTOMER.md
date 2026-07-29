@@ -14,9 +14,11 @@ Web environment:
 
 ```text
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
-CLERK_SECRET_KEY=sk_test_...
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
+
+The web application is a static browser client and does not use a Clerk
+secret key. Never put `CLERK_SECRET_KEY` in Hostinger.
 
 API environment:
 

@@ -22,14 +22,18 @@ function responseError(payload: unknown): string {
 
 export function PilotApplicationForm({
   apiBaseUrl,
+  purpose = "pilot",
 }: {
   apiBaseUrl?: string;
+  purpose?: "pilot" | "contact";
 }) {
   const [submission, setSubmission] = useState<SubmissionState>({
     kind: "idle",
     message: "",
   });
   const normalizedApiBaseUrl = apiBaseUrl?.replace(/\/+$/, "");
+  const isContact = purpose === "contact";
+  const formId = isContact ? "contact-form" : "pilot-application";
 
   async function submitApplication(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -63,7 +67,7 @@ export function PilotApplicationForm({
             role: formData.get("role") || null,
             use_case: formData.get("use_case"),
             timeline: formData.get("timeline") || null,
-            source: "website-pilot",
+            source: isContact ? "website-contact" : "website-pilot",
             consent_to_contact:
               formData.get("consent_to_contact") === "accepted",
             website: formData.get("website") || "",
@@ -99,17 +103,21 @@ export function PilotApplicationForm({
 
   return (
     <section
-      id="pilot-application"
+      id={formId}
       className="pilotApplication"
-      aria-labelledby="pilot-application-title"
+      aria-labelledby={`${formId}-title`}
     >
       <div>
-        <p className="eyebrow">Start the conversation</p>
-        <h2 id="pilot-application-title">Request pilot access.</h2>
+        <p className="eyebrow">
+          {isContact ? "Contact SALTI8" : "Start the conversation"}
+        </p>
+        <h2 id={`${formId}-title`}>
+          {isContact ? "Send a message." : "Request pilot access."}
+        </h2>
         <p>
-          Tell SALTI8 about one workflow, its failure cost, and the operating
-          team responsible for it. A focused pilot starts with a specific
-          outcome—not a generic platform rollout.
+          {isContact
+            ? "Use this form for product, billing, privacy, security, or partnership questions. Do not include passwords, API keys, payment-card data, or exploit details."
+            : "Tell SALTI8 about one workflow, its failure cost, and the operating team responsible for it. A focused pilot starts with a specific outcome—not a generic platform rollout."}
         </p>
       </div>
 
@@ -169,13 +177,17 @@ export function PilotApplicationForm({
         </div>
 
         <label>
-          Workflow and failure mode
+          {isContact ? "How can we help?" : "Workflow and failure mode"}
           <textarea
             name="use_case"
             minLength={20}
             maxLength={2000}
             rows={7}
-            placeholder="Describe the workflow, what can fail, and how you measure a safe outcome."
+            placeholder={
+              isContact
+                ? "Describe your question or request. For privacy or security matters, name the request type without including sensitive details."
+                : "Describe the workflow, what can fail, and how you measure a safe outcome."
+            }
             required
           />
         </label>
@@ -198,7 +210,7 @@ export function PilotApplicationForm({
             required
           />
           <span>
-            I agree that SALTI8 may contact me about this pilot request.
+            I agree that SALTI8 may contact me about this request.
           </span>
         </label>
 
@@ -217,7 +229,11 @@ export function PilotApplicationForm({
           type="submit"
           disabled={pending}
         >
-          {pending ? "Submitting…" : "Request pilot access"}
+          {pending
+            ? "Submitting…"
+            : isContact
+              ? "Send message"
+              : "Request pilot access"}
         </button>
       </form>
     </section>

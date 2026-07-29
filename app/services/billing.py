@@ -31,7 +31,6 @@ PLAN_ENTITLEMENTS = {
         "provider_routing",
         "extended_retention",
         "priority_support",
-        "sso",
         "spatial_intelligence",
     ],
 }
@@ -132,10 +131,13 @@ class StripeBillingService:
             "mode": "subscription",
             "line_items": [{"price": price_id, "quantity": 1}],
             "success_url": (
-                f"{self.settings.public_web_url.rstrip('/')}/billing/success"
+                f"{self.settings.public_web_url.rstrip('/')}/billing/success/"
                 "?session_id={CHECKOUT_SESSION_ID}"
             ),
-            "cancel_url": f"{self.settings.public_web_url.rstrip('/')}/pricing?checkout=cancelled",
+            "cancel_url": (
+                f"{self.settings.public_web_url.rstrip('/')}/pricing/"
+                "?checkout=cancelled"
+            ),
             "client_reference_id": tenant_id,
             "allow_promotion_codes": True,
             "billing_address_collection": "auto",
@@ -165,7 +167,7 @@ class StripeBillingService:
             raise ValueError("tenant has no Stripe customer")
         params: dict[str, Any] = {
             "customer": account.stripe_customer_id,
-            "return_url": f"{self.settings.public_web_url.rstrip('/')}/app/billing",
+            "return_url": f"{self.settings.public_web_url.rstrip('/')}/app/billing/",
         }
         if self.settings.stripe_portal_configuration_id:
             params["configuration"] = self.settings.stripe_portal_configuration_id

@@ -9,6 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default function CustomerSignInPage() {
+  const clerkConfigured = Boolean(
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+  );
+
   return (
     <MarketingPage>
       <section className="authShell shell">
@@ -20,7 +24,13 @@ export default function CustomerSignInPage() {
             self-service billing for your Layer8 Adaptive organization.
           </p>
         </div>
-        <SignInPanel />
+        {clerkConfigured ? (
+          <SignInPanel />
+        ) : (
+          <div className="authNotice" role="status">
+            Customer sign-in is awaiting the Clerk publishable key.
+          </div>
+        )}
       </section>
     </MarketingPage>
   );

@@ -1001,12 +1001,14 @@ a {
 
 .authCopy h1,
 .accountHeading h1 {
+  min-width: 0;
   max-width: 11ch;
   margin: 0;
   font-family: var(--font-display);
   font-size: clamp(3.6rem, 7vw, 7rem);
   font-weight: 600;
   line-height: 0.9;
+  overflow-wrap: anywhere;
   text-transform: uppercase;
 }
 
@@ -1161,6 +1163,19 @@ a {
 .billingStatus button:disabled {
   opacity: 0.55;
   cursor: wait;
+}
+
+.billingLegal {
+  margin: 24px 0 0;
+  color: var(--slate-600);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.billingLegal a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
 .entitlementList {
@@ -1384,7 +1399,7 @@ a {
 }
 
 .pilotApplication label > span {
-  color: var(--slate-500);
+  color: var(--slate-600);
   font-weight: 400;
 }
 
@@ -1414,7 +1429,7 @@ a {
 .pilotApplication select:focus-visible,
 .pilotApplication textarea:focus-visible {
   border-color: var(--terracotta-700);
-  outline: 2px solid var(--terracotta-300);
+  outline: 2px solid var(--terracotta-200);
   outline-offset: 2px;
 }
 
@@ -1544,13 +1559,15 @@ a {
 }
 
 .contentHero h1 {
+  min-width: 0;
   max-width: 15ch;
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(3.7rem, 7.5vw, 7.4rem);
+  font-size: clamp(3rem, 7.5vw, 7.4rem);
   font-weight: 600;
   line-height: 0.9;
   letter-spacing: 0.015em;
+  overflow-wrap: anywhere;
   text-transform: uppercase;
 }
 
@@ -1964,6 +1981,16 @@ a {
 
   .siteHeader {
     background: color-mix(in srgb, var(--canvas) 91%, transparent);
+  }
+
+  .mobileNav summary,
+  .mobileNav nav a {
+    color: var(--text);
+  }
+
+  .mobileNav summary,
+  .mobileNav nav {
+    background: var(--canvas-raised);
   }
 
   nav,

@@ -10,6 +10,9 @@ export const metadata: Metadata = {
 
 export default function BillingSuccessPage() {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
+  const clerkConfigured = Boolean(
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+  );
 
   return (
     <MarketingPage>
@@ -21,7 +24,7 @@ export default function BillingSuccessPage() {
           signed webhook event—not from this browser redirect. Your tenant
           administrator can confirm subscription status in Layer8 Adaptive.
         </p>
-        {apiBaseUrl ? (
+        {apiBaseUrl && clerkConfigured ? (
           <BillingSuccessStatus apiBaseUrl={apiBaseUrl} />
         ) : (
           <div className="authNotice">

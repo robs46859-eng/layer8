@@ -1,14 +1,14 @@
 "use client";
 
-import { SignIn } from "@clerk/react";
+import { SignUp } from "@clerk/react";
 
-export function SignInPanel() {
+export function SignUpPanel() {
   return (
-    <SignIn
+    <SignUp
       routing="hash"
+      signInUrl="/sign-in/"
       forceRedirectUrl="/app/billing/"
       fallbackRedirectUrl="/app/billing/"
-      signUpUrl="/sign-up/"
     />
   );
 }

@@ -45,7 +45,7 @@ export function MarketingHeader() {
             <a href="/pricing/">Pricing</a>
             <a href="/docs/">Docs</a>
             <a href="/sign-in/">Customer login</a>
-            <a href="/sign-up/">Create account</a>
+            <a href="/pilot/">Request access</a>
           </nav>
         </details>
       </div>
@@ -70,6 +70,10 @@ export function MarketingFooter() {
           <a href="/human-in-the-loop-ai/">Human Oversight</a>
           <a href="/security/">Security</a>
           <a href="/glossary/">Glossary</a>
+          <a href="/contact/">Contact</a>
+          <a href="/privacy/">Privacy</a>
+          <a href="/terms/">Terms</a>
+          <a href="/acceptable-use/">Acceptable use</a>
         </div>
         <div className="footerMeta">
           <span>Layer8 Adaptive by SALTI8</span>

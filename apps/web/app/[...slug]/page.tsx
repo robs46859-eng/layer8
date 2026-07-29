@@ -14,6 +14,8 @@ type PageProps = {
   params: Promise<{ slug: string[] }>;
 };
 
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return seoPages.map((page) => ({ slug: page.slug.split("/") }));
 }
@@ -39,11 +41,20 @@ export async function generateMetadata({
       title: page.title,
       description: page.description,
       siteName: "SALTI8",
+      images: [
+        {
+          url: "/images/salti8-acrylic-architecture.webp",
+          width: 2000,
+          height: 1091,
+          alt: "SALTI8 acrylic architecture representing governed AI execution layers.",
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: page.title,
       description: page.description,
+      images: ["/images/salti8-acrylic-architecture.webp"],
     },
     robots: page.noindex
       ? { index: false, follow: false }
@@ -115,6 +126,13 @@ export default async function ContentPage({ params }: PageProps) {
     notFound();
   }
   const isPilotPage = page.slug === "pilot";
+  const isContactPage = page.slug === "contact";
+  const isPricingPage = page.slug === "pricing";
+  const isLegalPage = [
+    "privacy",
+    "terms",
+    "acceptable-use",
+  ].includes(page.slug);
 
   return (
     <MarketingPage>
@@ -138,9 +156,24 @@ export default async function ContentPage({ params }: PageProps) {
           <div className="contentActions">
             <a
               className="button buttonPrimary"
-              href={isPilotPage ? "#pilot-application" : "/pilot/"}
+              href={
+                isPilotPage
+                  ? "#pilot-application"
+                  : isPricingPage
+                    ? "/app/billing/"
+                  : isContactPage
+                    ? "#contact-form"
+                    : isLegalPage
+                      ? "/contact/"
+                      : "/pilot/"
+              }
             >
-              Request pilot access <ArrowIcon />
+              {isPricingPage
+                ? "Open customer billing"
+                : isContactPage || isLegalPage
+                  ? "Contact SALTI8"
+                  : "Request pilot access"}{" "}
+              <ArrowIcon />
             </a>
             <a className="button buttonSecondary" href="/docs/">
               Read the documentation
@@ -148,6 +181,9 @@ export default async function ContentPage({ params }: PageProps) {
           </div>
           {page.lastVerified ? (
             <p className="verifiedDate">Pricing last verified: {page.lastVerified}</p>
+          ) : null}
+          {page.lastUpdated ? (
+            <p className="verifiedDate">Last updated: {page.lastUpdated}</p>
           ) : null}
         </header>
 
@@ -157,10 +193,11 @@ export default async function ContentPage({ params }: PageProps) {
           </div>
         ) : null}
 
-        {isPilotPage ? (
+        {isPilotPage || isContactPage ? (
           <div className="shell">
             <PilotApplicationForm
               apiBaseUrl={process.env.NEXT_PUBLIC_API_URL}
+              purpose={isContactPage ? "contact" : "pilot"}
             />
           </div>
         ) : null}

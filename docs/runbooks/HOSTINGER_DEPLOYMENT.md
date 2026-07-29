@@ -1,121 +1,106 @@
-# Hostinger Next.js deployment
+# Hostinger static deployment
 
-Hostinger runs the SALTI8 website as a server-side Next.js application.
-Layer8's FastAPI control plane, Stripe webhook, database, cache, and audit
-worker run separately from the web application.
+Hostinger is the DNS authority, CDN, TLS endpoint, and static host for
+`salti8.com`. It must not run the SALTI8 website as a persistent Node.js
+process.
+
+The previous server-side Next.js configuration is superseded. Hostinger's
+Node 22 runtime aborted before application startup while creating a worker
+thread, which produced public `503` responses even after successful builds.
 
 ## Git source
 
 ```text
 Repository: robs46859-eng/layer8
 Branch: main
+Root directory: apps/web
 Automatic deployment: enabled
 ```
 
-Use the existing `salti8.com` website entry. Do not create another website or
-temporary Hostinger domain for a deployment retry.
+Use the existing `salti8.com` website entry. Do not create another Hostinger
+website or repository.
 
-## hPanel build settings
+## Build settings
 
 ```text
-Framework: Next.js
+Framework: Other / Static
 Node.js version: 22.x
 Root directory: apps/web
-Build and output settings: Default
+Install command: npm ci
 Build command: npm run build
-Output directory: .next
-Start command: npm run start
+Output directory: out
+Entry file / start command: none
 ```
 
-`next build` generates `.next`. This is a server application, not a static
-export, because Clerk's Next.js provider, proxy, sign-in, and sign-up routes
-require the Next.js runtime.
+`next build` uses `output: "export"` and produces `apps/web/out`. Every route
+Hostinger serves is a file; there is no `.next/standalone` process.
 
 ## Hostinger environment
 
-Hostinger needs only the web application's settings:
+Hostinger needs only public, build-time values:
 
 ```text
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
-CLERK_SECRET_KEY=sk_live_...
 NEXT_PUBLIC_API_URL=https://api.salti8.com
 NEXT_PUBLIC_TEAM_PRICE_LABEL=$99/mo
 NEXT_PUBLIC_BUSINESS_PRICE_LABEL=$299/mo
 ```
 
-`NEXT_PUBLIC_*` values are embedded during the build and require a redeploy
-after a change.
-
-Do not store these backend-only values in Hostinger:
+Never add these backend values to Hostinger:
 
 ```text
+CLERK_SECRET_KEY
+CLERK_JWT_KEY
 STRIPE_SECRET_KEY
 STRIPE_WEBHOOK_SECRET
-STRIPE_LIVE_MODE
-STRIPE_PRICE_TEAM_MONTHLY
-STRIPE_PRICE_BUSINESS_MONTHLY
-STRIPE_PORTAL_CONFIGURATION_ID
-CLERK_JWT_KEY
-CLERK_ISSUER
 DATABASE_URL
 REDIS_URL
 AWS credentials
+ADMIN_API_TOKEN
+provider API keys
 ```
 
-Those values belong to the `salti8-api` service declared in `render.yaml`.
+## Required public routes
 
-## Expected routes
-
-After a successful build, Hostinger must serve:
+At minimum, verify:
 
 ```text
 /
-/pricing
-/sign-in
-/sign-up
-/app/billing
-/billing/success
+/pricing/
+/pilot/
+/contact/
+/privacy/
+/terms/
+/acceptable-use/
+/sign-in/
+/sign-up/
+/app/billing/
+/billing/success/
 /robots.txt
 /sitemap.xml
 ```
 
-Signed-out visitors may access the marketing, sign-in, and sign-up routes.
-`/app/billing` and `/billing/success` must redirect to Clerk sign-in.
+Public SEO pages must contain meaningful HTML before JavaScript runs.
+Authentication and billing pages must be `noindex`.
 
-## Post-deploy verification
+## Release verification
 
-1. Confirm hPanel reports the expected commit and a completed deployment.
-2. Check a unique cache-busting homepage URL and both canonical hosts.
-3. Confirm `/sign-in` and `/sign-up` render Clerk's production instance.
-4. Confirm `/app/billing` redirects signed-out visitors.
-5. Sign in and confirm the browser can reach `https://api.salti8.com`.
-6. Create a test Checkout before attempting a live payment.
-7. Confirm Stripe delivers a signed webhook and Layer8 grants entitlements.
-8. Open the Stripe customer portal from the billing page.
+1. Confirm the hPanel deployment shows the intended commit and `out` artifact.
+2. Confirm the apex domain returns `200` without an `x-nextjs` server runtime.
+3. Confirm `www.salti8.com` redirects permanently to `https://salti8.com`.
+4. Confirm the routes above return `200`.
+5. Confirm `/sign-in/` renders the Clerk production instance.
+6. Confirm signed-out billing shows a sign-in gate.
+7. Submit a clearly labeled internal test contact, then verify it appears in
+   the admin pilot-application list.
+8. Complete Stripe test Checkout, verify the signed webhook activates the
+   organization, and open the customer portal.
 
-A completed Hostinger build is not sufficient evidence. Any required route
-returning Hostinger's generic 503 blocks release.
-
-## Troubleshooting
-
-If the build fails, inspect the final deployment-log error and reproduce with:
-
-```bash
-npm ci
-npm run check
-npm run build
-```
-
-If the build succeeds but the website returns 503:
-
-1. Inspect Hostinger runtime logs.
-2. Inspect the hosting plan's maximum-process and memory graphs.
-3. Confirm there is only one SALTI8 Node.js website.
-4. Confirm Node 22, `apps/web`, Next.js, and default `.next` output.
-5. Restart the existing application; do not create another website.
+A successful build is not sufficient. Any required route returning `503`
+blocks release.
 
 ## Rollback
 
 Revert the bad commit on `main` and push the revert. Do not rewrite history.
-Record the reverted commit, replacement commit, Hostinger deployment timestamp,
-and the post-rollback route results.
+Record the reverted commit, replacement commit, Hostinger deployment
+timestamp, and route results.

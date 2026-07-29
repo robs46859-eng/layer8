@@ -4,7 +4,7 @@ import {
   OrganizationSwitcher,
   UserButton,
   useAuth,
-} from "@clerk/nextjs";
+} from "@clerk/react";
 import { useCallback, useEffect, useState } from "react";
 
 type BillingAccount = {
@@ -362,6 +362,21 @@ export function BillingDashboard({
                 </button>
               </article>
             </div>
+            <p className="billingLegal">
+              By choosing a plan, you agree to the{" "}
+              <a href="/terms/" target="_blank" rel="noreferrer">
+                Terms of Service
+              </a>
+              ,{" "}
+              <a href="/privacy/" target="_blank" rel="noreferrer">
+                Privacy Notice
+              </a>
+              , and{" "}
+              <a href="/acceptable-use/" target="_blank" rel="noreferrer">
+                Acceptable Use Policy
+              </a>
+              . Subscriptions renew monthly until canceled.
+            </p>
           </section>
         </div>
 

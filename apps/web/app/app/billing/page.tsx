@@ -14,16 +14,19 @@ export const metadata: Metadata = {
 
 export default function BillingPage() {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
+  const clerkConfigured = Boolean(
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+  );
 
-  if (!apiBaseUrl) {
+  if (!apiBaseUrl || !clerkConfigured) {
     return (
       <MarketingPage>
         <section className="contentHero shell compactHero">
           <p className="eyebrow">Customer control plane</p>
           <h1>Billing is awaiting configuration.</h1>
           <p className="contentLead">
-            Add the public API URL in Hostinger, then rebuild the site to
-            activate customer billing.
+            Add the public API URL and Clerk publishable key in Hostinger,
+            then rebuild the site to activate customer billing.
           </p>
           <a className="button buttonPrimary" href="/sign-in/">
             Return to sign in

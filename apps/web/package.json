@@ -4,12 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node scripts/prepare-hostinger-runtime.mjs",
-    "start": "next start",
+    "build": "next build",
+    "start": "npx serve out",
     "check": "tsc --noEmit"
   },
   "dependencies": {
-    "@clerk/nextjs": "^7.6.2",
+    "@clerk/react": "6.12.8",
     "next": "16.2.12",
     "react": "19.2.8",
     "react-dom": "19.2.8"

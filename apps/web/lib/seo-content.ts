@@ -32,6 +32,7 @@ export type SeoPage = {
   related: string[];
   sources?: Source[];
   lastVerified?: string;
+  lastUpdated?: string;
   noindex?: boolean;
 };
 
@@ -63,7 +64,7 @@ export const seoPages: SeoPage[] = [
           "Scoped API keys and tenant isolation",
           "Provider routing, failover, budgets, and quotas",
           "Normalized request, response, and streaming contracts",
-          "Cache separation and append-only audit events",
+          "Tenant-partitioned cache keys and structured audit records",
         ],
       },
       {
@@ -183,10 +184,10 @@ export const seoPages: SeoPage[] = [
       {
         heading: "Reconstruct the decision, not just the prompt",
         body: [
-          "Useful provenance includes request identity, tenant, policy, provider, model, validation results, repair reasons, approval actions, timestamps, hashes, and artifact references. Sensitive prompt logging remains separately controlled.",
+          "Useful provenance includes request identity, tenant, policy, provider, model, validation results, repair reasons, approval actions, timestamps, integrity metadata, and artifact references. Sensitive prompt logging remains separately controlled.",
         ],
         points: [
-          "Append-only request and workflow events",
+          "Structured request and workflow records",
           "Versioned policy and module references",
           "Reason-coded validation and repair",
           "Exportable evidence bundles",
@@ -504,6 +505,13 @@ export const seoPages: SeoPage[] = [
           "SALTI8 does not currently claim SOC 2, ISO 27001, HIPAA, FedRAMP, or other third-party certification in this repository. Those claims should appear only after the relevant scope has been independently assessed.",
         ],
       },
+      {
+        heading: "Report a security concern",
+        body: [
+          "Use the SALTI8 contact form to provide a high-level description and request a secure reporting channel. Do not place credentials, customer data, working exploit code, or sensitive vulnerability details in the public contact form.",
+          "Good-faith research must avoid privacy violations, data destruction, persistence, social engineering, denial of service, and access beyond what is necessary to demonstrate the issue. SALTI8 will coordinate scope and remediation directly.",
+        ],
+      },
     ],
     faqs: [
       {
@@ -517,7 +525,7 @@ export const seoPages: SeoPage[] = [
           "The backend stores a hash and prefix rather than the raw API key and supports revocation and rotation.",
       },
     ],
-    related: ["ai-governance", "ai-gateway", "docs"],
+    related: ["ai-governance", "ai-gateway", "docs", "contact"],
   },
   {
     slug: "pricing",
@@ -536,22 +544,29 @@ export const seoPages: SeoPage[] = [
     ],
     sections: [
       {
-        heading: "Developer",
+        heading: "Evaluation access",
         body: [
-          "Development access supports API integration, sandbox workflows, and evaluation before a production subscription is activated. Tenant and usage limits are confirmed during onboarding.",
+          "Approved pilot teams can evaluate API integration and sandbox workflows before activating a production subscription. Evaluation duration, tenant limits, and provider access are confirmed in writing during onboarding.",
         ],
       },
       {
-        heading: "Team and Business",
+        heading: `Team — ${teamPriceLabel}`,
         body: [
-          `Team is ${teamPriceLabel}; Business is ${businessPriceLabel}. The authenticated checkout shows the exact recurring charge before payment, and access changes only after the signed Stripe webhook confirms the subscription.`,
-          "Team includes API access, cascade execution, audit export, provider routing, and team support. Business adds extended retention, priority support, and SSO.",
+          "Team includes one customer organization with API access, cascade execution, audit export, provider routing, and standard pilot support. AI-provider inference, taxes, and separately contracted services are not included in the platform fee.",
+          "The authenticated Stripe Checkout shows the exact recurring charge before payment. Paid access changes only after the signed webhook confirms the subscription.",
         ],
       },
       {
-        heading: "Enterprise",
+        heading: `Business — ${businessPriceLabel}`,
         body: [
-          "Enterprise agreements can cover private networking, SSO, dedicated deployment boundaries, data residency, extended retention, custom support, and negotiated service levels.",
+          "Business includes the Team capabilities plus extended-retention controls, priority pilot support, and the spatial-intelligence entitlement. SSO, private networking, dedicated deployment boundaries, data residency, custom retention, and service-level commitments require a separate written order.",
+        ],
+      },
+      {
+        heading: "Cancellation, renewals, and refunds",
+        body: [
+          "Monthly subscriptions renew automatically until canceled. An authorized customer administrator can manage or cancel a subscription in the Stripe customer portal; cancellation takes effect at the end of the paid billing period unless the checkout or a written order states otherwise.",
+          "Fees are non-refundable and are not prorated except where required by law or expressly stated in a written order. Customers keep access through the paid period after a scheduled cancellation.",
         ],
       },
     ],
@@ -566,8 +581,208 @@ export const seoPages: SeoPage[] = [
         answer:
           "Approved organizations can choose Team or Business from the customer billing screen. Layer8 verifies the signed Stripe webhook before granting paid entitlements.",
       },
+      {
+        question: "Can I cancel from the website?",
+        answer:
+          "Yes. After activation, an authorized organization administrator can open the Stripe customer portal from the billing screen and schedule cancellation at the end of the current billing period.",
+      },
     ],
     related: ["pilot", "ai-gateway", "compare/portkey", "compare/litellm"],
+  },
+  {
+    slug: "contact",
+    title: "Contact SALTI8",
+    description:
+      "Contact SALTI8 about Layer8 Adaptive pilots, product questions, billing, privacy, security, partnerships, and governed AI execution.",
+    eyebrow: "Contact",
+    heading: "Talk with the team building Layer8 Adaptive.",
+    lead:
+      "Use the contact form for product, pilot, billing, privacy, security, or partnership questions. SALTI8 will route the request to the appropriate owner.",
+    keywords: [
+      "contact SALTI8",
+      "Layer8 Adaptive contact",
+      "AI gateway pilot",
+    ],
+    sections: [
+      {
+        heading: "Product and pilot questions",
+        body: [
+          "Share the organization, workflow, failure mode, and evaluation timeline so SALTI8 can determine whether a focused pilot is a fit.",
+        ],
+      },
+      {
+        heading: "Billing, privacy, and security requests",
+        body: [
+          "Name the request type in the message. Do not submit passwords, API keys, payment-card data, private prompts, or exploit details. SALTI8 will establish an appropriate secure follow-up channel when needed.",
+        ],
+      },
+    ],
+    faqs: [],
+    related: ["pilot", "pricing", "security", "privacy"],
+    lastUpdated: "July 28, 2026",
+  },
+  {
+    slug: "privacy",
+    title: "SALTI8 Privacy Notice",
+    description:
+      "Learn what information SALTI8 collects, why it is used, which service providers process it, and how to submit a privacy request.",
+    eyebrow: "Legal",
+    heading: "Privacy notice.",
+    lead:
+      "This notice explains how SALTI8, Inc. handles personal information for salti8.com, Layer8 Adaptive accounts, pilot applications, support, and billing.",
+    keywords: [
+      "SALTI8 privacy",
+      "Layer8 Adaptive privacy",
+      "AI gateway data privacy",
+    ],
+    sections: [
+      {
+        heading: "Information we collect",
+        body: [
+          "Pilot and contact forms collect the information you provide, such as name, work email, company, role, request details, timeline, and consent to be contacted. Account access can include identity, session, and organization membership information supplied through Clerk. Billing can include customer, subscription, invoice, and transaction identifiers supplied through Stripe; SALTI8 does not receive complete payment-card numbers.",
+          "Layer8 may process operational metadata needed to authenticate, route, secure, meter, troubleshoot, and audit customer requests. Prompt and response handling depends on customer configuration and the approved AI providers used for a workflow. Prompt logging is disabled by default in the launch configuration.",
+        ],
+      },
+      {
+        heading: "How we use information",
+        body: [
+          "SALTI8 uses information to evaluate pilot requests, create and secure accounts, provide and improve the service, process subscriptions, respond to support and legal requests, prevent abuse, maintain audit and billing records, and comply with law.",
+          "SALTI8 does not sell personal information. We may disclose information to service providers acting on our behalf, to customer organization administrators, when required by law, or to protect rights, safety, and service integrity.",
+        ],
+      },
+      {
+        heading: "Service providers and international processing",
+        body: [
+          "Launch service providers include Hostinger for the public site and DNS, Render for the API and managed infrastructure, Clerk for identity, Stripe for billing, and customer-approved AI or storage providers for configured workloads. Those providers process information under their own terms and privacy notices.",
+          "Information may be processed in countries other than where it was collected. Customer-specific data location or residency commitments apply only when written into an order.",
+        ],
+      },
+      {
+        heading: "Retention, security, and choices",
+        body: [
+          "SALTI8 retains information only as long as reasonably necessary for the purposes described, customer instructions, dispute resolution, security, and legal or accounting obligations. Operational and content retention can vary by plan and tenant configuration.",
+          "Reasonable technical and organizational safeguards are used, but no internet service can guarantee absolute security. Depending on applicable law, you may request access, correction, deletion, restriction, or a copy of personal information.",
+        ],
+      },
+      {
+        heading: "Contact and changes",
+        body: [
+          "Submit privacy questions or requests through the SALTI8 contact form and label the message as a privacy request. Do not include sensitive authentication or payment information. SALTI8 may update this notice as the service changes and will post the revised date on this page.",
+        ],
+      },
+    ],
+    faqs: [],
+    related: ["contact", "security", "terms", "acceptable-use"],
+    lastUpdated: "July 28, 2026",
+  },
+  {
+    slug: "terms",
+    title: "SALTI8 Terms of Service",
+    description:
+      "Review SALTI8 terms for Layer8 Adaptive accounts, subscriptions, customer data, AI outputs, acceptable use, cancellation, and service limitations.",
+    eyebrow: "Legal",
+    heading: "Terms of service.",
+    lead:
+      "These terms govern access to salti8.com and Layer8 Adaptive by SALTI8. A signed order form or services agreement controls if it conflicts with these terms.",
+    keywords: [
+      "SALTI8 terms",
+      "Layer8 Adaptive terms",
+      "AI gateway terms of service",
+    ],
+    sections: [
+      {
+        heading: "Accounts and organizations",
+        body: [
+          "You must provide accurate information, protect credentials, and have authority to act for the organization you join or create. Organization administrators control membership and billing. You are responsible for activity under your accounts and API keys and must notify SALTI8 promptly of suspected unauthorized use.",
+          "Pilot and production access may require approval, identity configuration, an organization-to-tenant mapping, and technical onboarding. SALTI8 may reject, suspend, or limit access when necessary to protect customers, the service, or third parties.",
+        ],
+      },
+      {
+        heading: "Subscriptions, taxes, cancellation, and refunds",
+        body: [
+          "Paid subscriptions renew automatically for the billing period shown at Stripe Checkout until canceled. Prices exclude AI-provider usage, taxes, and separately contracted services unless stated otherwise. You authorize Stripe to charge the selected payment method for recurring fees and applicable taxes.",
+          "An authorized administrator can schedule cancellation through the Stripe customer portal. Cancellation normally takes effect at the end of the current paid period. Fees are non-refundable and non-prorated except where required by law or expressly stated in a written order.",
+        ],
+      },
+      {
+        heading: "Customer data and AI workloads",
+        body: [
+          "As between you and SALTI8, you retain rights in data you submit. You grant SALTI8 and its processors the limited rights needed to host, transmit, secure, transform, and otherwise process that data to provide the service. You are responsible for having the rights and lawful basis needed to submit data and for configuring approved providers and retention appropriately.",
+          "AI outputs can be inaccurate, incomplete, or non-unique. Layer8 controls and evidence can reduce operational risk but do not guarantee correctness, legal compliance, fitness, or professional judgment. You remain responsible for review and use of outputs, especially for consequential decisions.",
+        ],
+      },
+      {
+        heading: "Service operation and support",
+        body: [
+          "SALTI8 may change or discontinue preview features and may perform maintenance. Unless a written order states otherwise, the service is provided without a service-level commitment and support response times are not guaranteed.",
+          "You may not bypass authorization, rate, policy, tenancy, or billing controls. Use is also subject to the Acceptable Use Policy.",
+        ],
+      },
+      {
+        heading: "Intellectual property and feedback",
+        body: [
+          "SALTI8 and its licensors retain rights in Layer8 Adaptive, the SALTI-B Engine, software, designs, documentation, and branding. No rights are granted except the limited, revocable right to use the service under these terms and an applicable order.",
+          "If you provide feedback, you permit SALTI8 to use it without restriction or compensation, provided SALTI8 does not identify you publicly without permission.",
+        ],
+      },
+      {
+        heading: "Disclaimers and limits",
+        body: [
+          "To the maximum extent permitted by law, the service is provided “as is” and “as available” without implied warranties. SALTI8 is not liable for indirect, incidental, special, consequential, exemplary, or punitive damages, lost profits, or lost data.",
+          "To the maximum extent permitted by law, SALTI8's aggregate liability arising from the service is limited to fees you paid SALTI8 for the service during the twelve months before the event giving rise to the claim. Some jurisdictions do not allow every exclusion or limit, so those provisions apply only to the extent permitted.",
+        ],
+      },
+      {
+        heading: "Termination and changes",
+        body: [
+          "Either party may end use as permitted by the subscription or written order. SALTI8 may suspend or terminate access for material breach, unlawful or unsafe use, nonpayment, or risk to the service. Provisions that by their nature should survive termination will survive.",
+          "SALTI8 may update these terms prospectively. Material changes will be posted with a revised date. Continued use after an effective update constitutes acceptance where permitted by law.",
+        ],
+      },
+    ],
+    faqs: [],
+    related: ["pricing", "privacy", "acceptable-use", "contact"],
+    lastUpdated: "July 28, 2026",
+  },
+  {
+    slug: "acceptable-use",
+    title: "SALTI8 Acceptable Use Policy",
+    description:
+      "Review prohibited uses of Layer8 Adaptive, including unauthorized access, harmful content, evasion, abuse, privacy violations, and high-risk deployment.",
+    eyebrow: "Legal",
+    heading: "Acceptable use policy.",
+    lead:
+      "Layer8 Adaptive may be used only for lawful, authorized workloads that respect security, privacy, human authority, provider rules, and customer policy.",
+    keywords: [
+      "SALTI8 acceptable use",
+      "AI gateway acceptable use policy",
+      "responsible AI platform use",
+    ],
+    sections: [
+      {
+        heading: "Prohibited conduct",
+        body: [
+          "You may not use the service to break the law; infringe rights; facilitate malware, credential theft, unauthorized surveillance, exploitation, or fraud; access systems or data without permission; evade safety, policy, rate, tenancy, or billing controls; disrupt the service; or test security without written authorization.",
+          "You may not submit data you lack the right to process, expose secrets in prompts or logs contrary to policy, misrepresent AI output as verified human or professional judgment, or use the service to make unlawful discriminatory decisions.",
+        ],
+      },
+      {
+        heading: "High-impact and regulated use",
+        body: [
+          "Layer8 is not a substitute for licensed, legally required, or accountable professional review. Uses involving safety, employment, housing, credit, insurance, education, healthcare, legal rights, critical infrastructure, emergency response, or other high-impact decisions require appropriate human authority, testing, documentation, and written customer controls.",
+        ],
+      },
+      {
+        heading: "Enforcement and reporting",
+        body: [
+          "SALTI8 may investigate suspected violations and may limit, suspend, or terminate access to protect customers, third parties, or the service. Where practical, SALTI8 will provide notice and an opportunity to correct a violation, but immediate action may be required for urgent risk.",
+          "Report suspected abuse through the contact form. For a vulnerability, provide a high-level description first and wait for a secure reporting channel before sending exploit details or sensitive data.",
+        ],
+      },
+    ],
+    faqs: [],
+    related: ["terms", "privacy", "security", "contact"],
+    lastUpdated: "July 28, 2026",
   },
   {
     slug: "docs",

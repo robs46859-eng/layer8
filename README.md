@@ -3,16 +3,16 @@
 FastAPI scaffold for a tenant-aware AI routing proxy with both a memory-backed dev mode and a self-hosted mode using PostgreSQL, Redis, MinIO/S3, and an SQS-compatible queue.
 
 This repository also contains the SALTI8 Next.js application in `apps/web`.
-Hostinger deploys that workspace as a server-side Next.js application:
+Hostinger builds that workspace and serves the generated static files:
 
 ```bash
 npm ci
 npm run build
-npm run start
 ```
 
-The Next.js build output is `.next`. Hostinger runs the web process; the
-FastAPI control plane and Stripe webhook run separately at
+The deployable web artifact is `apps/web/out`. Hostinger does not run a
+persistent Node.js process. Clerk authentication runs in the browser, while
+FastAPI validates Clerk session tokens and owns billing authorization at
 `https://api.salti8.com`.
 
 The web application uses the public domain `https://salti8.com`. The API and
@@ -151,7 +151,7 @@ Current control-plane endpoints:
 ## Production Follow-Ups
 
 - Move AWS credentials and provider secrets into a real secret manager
-- Put the API behind TLS and a reverse proxy
+- Keep the API on an always-on paid service before accepting production traffic
 - Run a dedicated worker process for audit/archive queue consumption
 - Add admin APIs for tenants, routing policies, and provider accounts
 - Harden plugin isolation beyond in-process execution if untrusted code is allowed

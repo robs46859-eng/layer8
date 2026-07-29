@@ -262,7 +262,10 @@ def test_checkout_uses_allowlisted_price_and_idempotency_key(tmp_path):
         options = create.call_args.kwargs["options"]
         assert params["line_items"] == [{"price": "price_team", "quantity": 1}]
         assert params["client_reference_id"] == "tenant_alpha"
-        assert params["success_url"].startswith("https://salti8.com/billing/success")
+        assert params["success_url"].startswith("https://salti8.com/billing/success/")
+        assert params["cancel_url"] == (
+            "https://salti8.com/pricing/?checkout=cancelled"
+        )
         assert options == {"idempotency_key": "checkout:tenant_alpha:attempt-1"}
 
 

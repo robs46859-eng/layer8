@@ -45,7 +45,7 @@ const platformResponsibilities = [
   "Identity, tenancy, policy, and scoped access",
   "Multi-provider model routing and failover",
   "Usage, cost, versioning, and rate enforcement",
-  "Append-only audit events and evidence bundles",
+  "Structured audit records and evidence references",
 ];
 
 const engineResponsibilities = [
@@ -200,7 +200,7 @@ export default function Home() {
           <HeroVisual />
         </section>
 
-        <section className="capabilityRail" aria-label="Execution guarantees">
+        <section className="capabilityRail" aria-label="Platform functions">
           <div className="shell capabilityGrid">
             <div>
               <span>01</span>
@@ -308,10 +308,11 @@ export default function Home() {
               <p className="eyebrow">04 · Evidence before confidence</p>
               <h2>Control that survives the audit.</h2>
               <p>
-                Layer8 records the tenant, policy, provider, model, validation
-                result, repair reason, approval, and version behind a decision.
-                Teams can reconstruct what happened without trusting a
-                screenshot or a model&apos;s memory.
+                Layer8 is designed to retain the tenant, policy, provider,
+                model, validation result, repair reason, approval, and version
+                needed to investigate a decision. The launch API records
+                structured operational metadata while deeper workflow evidence
+                remains pilot-scoped.
               </p>
               <a className="textLink" href="/pilot/">
                 Discuss a governed workflow <ArrowIcon />
@@ -319,8 +320,8 @@ export default function Home() {
             </div>
             <Blueprint className="evidencePanel">
               <div className="evidenceHeader">
-                <span>Provenance bundle</span>
-                <span className="status">Complete</span>
+                <span>Illustrative provenance record</span>
+                <span className="status">Concept</span>
               </div>
               <dl>
                 <div>
@@ -345,7 +346,7 @@ export default function Home() {
                 </div>
                 <div>
                   <dt>Evidence</dt>
-                  <dd>Hash sealed</dd>
+                  <dd>References recorded</dd>
                 </div>
               </dl>
             </Blueprint>
