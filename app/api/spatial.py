@@ -73,23 +73,36 @@ async def require_spatial_auth(x_api_key: str = Header(..., alias="X-API-Key")) 
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="api key is inactive")
     if not verify_api_secret(record.prefix, secret, record.secret_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid api key")
-    try:
-        enforce_entitlement(
-            subscription_status=record.billing_status,
-            payment_grace_ends_at=record.payment_grace_ends_at,
-            entitlements=set(record.billing_entitlements or set()),
-            required_entitlement="spatial_intelligence",
+    settings = get_settings()
+    is_internal_spatial_tenant = (
+        record.tenant_id in settings.internal_spatial_tenant_id_set
+    )
+    if is_internal_spatial_tenant:
+        logger.info(
+            {
+                "event": "internal_spatial_entitlement",
+                "tenant_id": record.tenant_id,
+                "key_id": record.key_id,
+            }
         )
-    except BillingAccessError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_402_PAYMENT_REQUIRED,
-            detail=str(exc),
-        ) from exc
-    except EntitlementAccessError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=str(exc),
-        ) from exc
+    else:
+        try:
+            enforce_entitlement(
+                subscription_status=record.billing_status,
+                payment_grace_ends_at=record.payment_grace_ends_at,
+                entitlements=set(record.billing_entitlements or set()),
+                required_entitlement="spatial_intelligence",
+            )
+        except BillingAccessError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail=str(exc),
+            ) from exc
+        except EntitlementAccessError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=str(exc),
+            ) from exc
     if "spatial:invoke" not in record.scopes:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

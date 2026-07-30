@@ -64,6 +64,10 @@ class Settings(BaseSettings):
         default=False,
         alias="SELF_SERVICE_SIGNUP_ENABLED",
     )
+    internal_spatial_tenant_ids: str = Field(
+        default="",
+        alias="INTERNAL_SPATIAL_TENANT_IDS",
+    )
     cors_allowed_origins: str = Field(
         default=(
             "http://localhost:3000,http://127.0.0.1:3000,"
@@ -112,6 +116,14 @@ class Settings(BaseSettings):
                 if "localhost" not in origin and "127.0.0.1" not in origin
             ]
         return origins
+
+    @property
+    def internal_spatial_tenant_id_set(self) -> set[str]:
+        return {
+            tenant_id.strip()
+            for tenant_id in self.internal_spatial_tenant_ids.split(",")
+            if tenant_id.strip()
+        }
 
 
 @lru_cache

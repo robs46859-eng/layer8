@@ -25,6 +25,8 @@ from app.core.config import get_settings
 get_settings.cache_clear()
 
 from app.api.spatial import spatial_router
+from app.core.security import hash_api_secret
+from app.services.auth import APIKeyRecord, InMemoryAPIKeyStore
 
 DEV_API_KEY = "ak_live_demo.change-me-now"
 
@@ -69,6 +71,74 @@ def test_observe_rejects_malformed_api_key():
         json={"referenceImages": [{"versionId": 1, "url": "https://example.com/a.jpg"}]},
     )
     assert resp.status_code == 401
+
+
+def test_internal_spatial_tenant_bypasses_billing_but_not_key_scope(monkeypatch):
+    import app.api.spatial as spatial_api
+
+    prefix = "ak_live_internal"
+    secret = "internal-test-secret"
+    record = APIKeyRecord(
+        key_id="key_internal",
+        tenant_id="pawsome3d",
+        prefix=prefix,
+        secret_hash=hash_api_secret(prefix, secret),
+        scopes={"spatial:invoke"},
+        allowed_models=set(),
+        billing_status="inactive",
+        billing_entitlements=set(),
+    )
+    monkeypatch.setattr(
+        spatial_api,
+        "_key_store",
+        InMemoryAPIKeyStore({prefix: record}),
+    )
+    monkeypatch.setenv("INTERNAL_SPATIAL_TENANT_IDS", "pawsome3d")
+    get_settings.cache_clear()
+
+    response = build_client().post(
+        "/v1/spatial/observe",
+        headers={"X-API-Key": f"{prefix}.{secret}"},
+        json={"referenceImages": []},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"]["code"] == "NO_REFERENCE_IMAGES"
+    get_settings.cache_clear()
+
+
+def test_internal_spatial_tenant_still_requires_spatial_scope(monkeypatch):
+    import app.api.spatial as spatial_api
+
+    prefix = "ak_live_internal_no_scope"
+    secret = "internal-test-secret"
+    record = APIKeyRecord(
+        key_id="key_internal_no_scope",
+        tenant_id="pawsome3d",
+        prefix=prefix,
+        secret_hash=hash_api_secret(prefix, secret),
+        scopes={"inference:invoke"},
+        allowed_models=set(),
+        billing_status="inactive",
+        billing_entitlements=set(),
+    )
+    monkeypatch.setattr(
+        spatial_api,
+        "_key_store",
+        InMemoryAPIKeyStore({prefix: record}),
+    )
+    monkeypatch.setenv("INTERNAL_SPATIAL_TENANT_IDS", "pawsome3d")
+    get_settings.cache_clear()
+
+    response = build_client().post(
+        "/v1/spatial/observe",
+        headers={"X-API-Key": f"{prefix}.{secret}"},
+        json={"referenceImages": []},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "missing scope spatial:invoke"
+    get_settings.cache_clear()
 
 
 def test_observe_rejects_empty_reference_images_with_valid_key():

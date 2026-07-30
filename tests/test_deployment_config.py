@@ -70,6 +70,16 @@ def test_production_cors_removes_localhost_origins():
     ]
 
 
+def test_internal_spatial_tenants_are_explicit_and_trimmed():
+    settings = Settings(INTERNAL_SPATIAL_TENANT_IDS=" pawsome3d,internal-cad ,,")
+    assert settings.internal_spatial_tenant_id_set == {"pawsome3d", "internal-cad"}
+
+
+def test_internal_spatial_tenants_default_closed():
+    settings = Settings()
+    assert settings.internal_spatial_tenant_id_set == set()
+
+
 def test_development_cors_keeps_local_origins():
     settings = Settings(ENVIRONMENT="development")
 
