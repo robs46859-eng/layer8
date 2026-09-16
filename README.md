@@ -11,6 +11,27 @@ The repository combines:
 - PostgreSQL, Redis, S3-compatible archive, and queue integrations;
 - deployment, migration, and launch runbooks in `docs/runbooks`.
 
+## Feature summary
+
+### Available in the codebase
+
+- **Tenant-aware AI gateway:** authenticates scoped API keys, separates tenant data, enforces rate limits and idempotency, runs bounded plugins, selects a provider, and records usage and audit evidence.
+- **Provider routing and resilience:** supports mock, OpenAI-compatible, and Gemini paths with policy-based selection, retries, fallback controls, response caching, and prompt logging disabled by default.
+- **Customer identity and billing:** maps Clerk organizations to Layer8 tenants and provides server-owned Stripe Checkout, subscription, invoice, entitlement, and customer-portal flows. Stripe secrets and administrative authority never belong in browser code.
+- **Administration and pilots:** exposes protected API-only operations for tenant, API-key, entitlement, plugin, and pilot management. Platform administration requires its own token and is not granted by a normal Clerk session.
+- **Spatial-service boundary:** supports separately authorized internal spatial workloads without turning that internal path into a customer or platform-admin bypass.
+- **VirtuaPet policy boundary:** includes default-off signed identity-link and short-lived policy-decision contracts. Activation requires explicit tenant mapping, dedicated `virtuapet:policy` credentials, managed signing keys, consent, and two-tenant validation.
+- **Durable self-hosted operation:** uses PostgreSQL for records, Redis for cache/rate/replay state, and an asynchronous audit pipeline. Audit transport can use AWS-compatible S3/SQS or Azure Blob Storage/Service Bus.
+- **Static customer website:** builds a verified Next.js static export for Hostinger, including authentication and billing UI, search metadata, sitemap, social assets, and export-integrity checks.
+- **Operational controls:** includes Alembic migrations, health and dependency readiness probes, structured redacted logs, environment validation, CI tests, immutable GHCR images, deployment runbooks, and rollback gates.
+
+### Current deployment status
+
+- The SALTI8 static site remains on Hostinger and the public `api.salti8.com` DNS name still points to the suspended Render service.
+- An isolated Azure staging API is live at `layer8-staging-api.niceground-f0c7cfe6.westus3.azurecontainerapps.io`; its PostgreSQL, Redis, Blob Storage, and Service Bus readiness checks pass.
+- The scheduled Azure audit worker is deployed from the same immutable image and its first manual execution succeeded.
+- Clerk, Stripe, AI-provider, and VirtuaPet production activation is intentionally incomplete. Passing readiness does not authorize DNS cutover, webhook movement, tenant import, or integration enablement.
+
 ## VirtuaPet policy integration
 
 Layer8 Adaptive now includes a **default-off** VirtuaPet boundary at
@@ -20,13 +41,13 @@ five-minute, challenge-bound account proof. A dedicated tenant API key with the
 The provider rereads the current tenant, API-key, billing, and entitlement state
 for every decision. It does not use platform-admin or internal-spatial bypasses.
 
-The integration remains inactive until the Render API is healthy and an operator provisions a managed P-256
+The integration remains inactive until the Azure staging acceptance is complete and an operator provisions a managed P-256
 signing key, separate link and policy audiences, an explicit VirtuaPet-to-Layer8
 tenant map, Redis, and dedicated per-tenant keys scoped exactly to
 `virtuapet:policy`. A 2026-09-16 review found no local production environment
-file or cloud evidence that those integration credentials had been provisioned;
-both `https://api.salti8.com/healthz` and `/readyz` returned 503 Service Suspended;
-passing code and CI are not activation evidence. No Stripe product, price,
+file or cloud evidence that those integration credentials had been provisioned.
+The Azure service is dependency-ready, but the public Render endpoint remains suspended;
+neither condition is VirtuaPet activation evidence. No Stripe product, price,
 webhook, or customer entitlement is changed by this code. See
 `docs/architecture/VIRTUAPET_INTEGRATION.md`.
 

@@ -46,5 +46,7 @@ Record immutable image digest, migration execution, resource IDs, managed-identi
 - Managed Redis cluster/database: `redis-layer8-stg-f7318c`, encrypted port 10000; its access URL is stored only as Key Vault secret `layer8-redis-url`.
 - Private audit storage: `stlayer8stgf7318c` container `audit`; Service Bus namespace/queue: `sb-layer8-stg-f7318c` / `layer8-audit`.
 - Container App: `layer8-staging-api`; Azure staging FQDN `layer8-staging-api.niceground-f0c7cfe6.westus3.azurecontainerapps.io`.
-- First probe: `/healthz` returned 200 and PostgreSQL passed. `/readyz` correctly returned 503 before Redis and Azure audit dependencies were wired into a new image.
+- Revision `layer8-staging-api--miclient` runs immutable image `sha-6049ea4`. `/healthz` and `/readyz` returned 200; PostgreSQL, Redis, Blob Storage, and Service Bus checks all passed.
+- Unauthenticated `/admin/tenants` returned 401, and the intentionally disabled VirtuaPet policy endpoint returned 503.
+- Scheduled job `layer8-audit-worker` uses the same image; manual execution `layer8-audit-worker-34g4od0` succeeded. A real authorized request and resulting queue-to-blob artifact remain an acceptance gate.
 - Key Vault holds only named runtime references: `layer8-database-url`, `layer8-redis-url`, `layer8-admin-api-token`, and `layer8-ghcr-token`.
