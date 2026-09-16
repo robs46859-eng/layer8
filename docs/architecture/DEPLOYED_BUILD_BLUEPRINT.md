@@ -1,5 +1,7 @@
 # Layer8 Adaptive deployed-build blueprint
 
+> Historical Render snapshot. Render is now suspended and these recorded PASS results are not current evidence. The active pre-cutover source of truth is `docs/architecture/AZURE_STAGING_DEPLOYMENT.md` and `docs/runbooks/AZURE_PRE_CUTOVER.md`.
+
 **System:** Layer8 Adaptive by SALTI8  
 **Environment:** Production  
 **Verified:** July 29, 2026 (America/Denver)  

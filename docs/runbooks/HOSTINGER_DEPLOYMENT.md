@@ -87,15 +87,14 @@ Hostinger is the DNS authority for `salti8.com`. Required records:
 | --- | --- | --- | --- |
 | `A` | `@` | Hostinger site IP (from hPanel) | Apex serves the static site |
 | `CNAME` | `www` | `salti8.com` | Resolves, then 301s to apex via `.htaccess` |
-| `CNAME` | `api` | Render external hostname for `salti8-api` | Points the API subdomain at Render |
+| `CNAME` | `api` | Current Render hostname; later validated Azure custom-domain target | Do not change before the approved cutover window |
 | `TXT` | `@` | Google Search Console verification token | Domain-property verification |
 | `CAA` | `@` | `0 issue "letsencrypt.org"` | Restricts who may issue certificates |
 
 The apex must not be a `CNAME` — apex `CNAME` is invalid in standard DNS.
-`api.salti8.com` must be a `CNAME` to Render, never an `A` record; Render's
-addresses are not static.
+`api.salti8.com` currently remains a `CNAME` to Render. The approved cutover target is the validated Azure Container Apps custom-domain record defined during the cutover window; do not change it before Azure certificate validation, staging acceptance, and rollback approval. See `AZURE_PRE_CUTOVER.md`.
 
-TLS is issued by Hostinger for the apex and `www`, and by Render for `api`.
+TLS is issued by Hostinger for the apex and `www`; the API certificate belongs to its active API host (currently Render, later Azure after explicit cutover).
 Both certificates must cover their hostname before the first deploy is
 announced, or the redirect chain terminates in a certificate warning.
 
