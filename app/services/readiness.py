@@ -2,6 +2,9 @@ from collections.abc import Callable
 
 import boto3
 import redis
+from azure.identity import DefaultAzureCredential
+from azure.servicebus import ServiceBusClient
+from azure.storage.blob import BlobServiceClient
 from sqlalchemy import text
 
 from app.core.config import Settings
@@ -23,7 +26,7 @@ class ReadinessService:
         checks = {
             "postgres": self._run_check(self._check_postgres),
             "redis": self._run_check(self._check_redis),
-            "s3": self._run_check(self._check_s3),
+            "audit_storage": self._run_check(self._check_audit_storage),
             "queue": self._run_check(self._check_queue),
         }
         overall = "ok" if all(item["status"] == "ok" for item in checks.values()) else "error"
@@ -44,7 +47,14 @@ class ReadinessService:
         client = redis.Redis.from_url(self.settings.redis_url, decode_responses=True)
         client.ping()
 
-    def _check_s3(self) -> None:
+    def _check_audit_storage(self) -> None:
+        if self.settings.audit_backend == "azure":
+            client = BlobServiceClient(
+                account_url=self.settings.azure_blob_account_url,
+                credential=DefaultAzureCredential(),
+            )
+            client.get_container_client(self.settings.azure_blob_container).get_container_properties()
+            return
         client = boto3.client(
             "s3",
             region_name=self.settings.aws_region,
@@ -55,6 +65,13 @@ class ReadinessService:
         client.head_bucket(Bucket=self.settings.s3_bucket)
 
     def _check_queue(self) -> None:
+        if self.settings.audit_backend == "azure":
+            client = ServiceBusClient(
+                fully_qualified_namespace=self.settings.azure_service_bus_namespace,
+                credential=DefaultAzureCredential(),
+            )
+            with client.get_queue_sender(queue_name=self.settings.azure_service_bus_queue):
+                return
         client = boto3.client(
             "sqs",
             region_name=self.settings.aws_region,

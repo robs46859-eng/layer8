@@ -6,6 +6,9 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 
 import boto3
+from azure.identity import DefaultAzureCredential
+from azure.servicebus import ServiceBusClient
+from azure.storage.blob import BlobServiceClient, ContentSettings
 
 from app.core.config import get_settings
 from app.db.models import RequestAudit
@@ -20,7 +23,7 @@ class AuditTask:
     request_id: str
     tenant_id: str
     response: InferenceResponse
-    receipt_handle: str
+    receipt_handle: object
     queue_url: str
 
 
@@ -28,6 +31,21 @@ class AuditWorker:
     def __init__(self) -> None:
         self.settings = get_settings()
         self.session_factory = get_session_factory()
+        self.sqs = None
+        self.s3 = None
+        self.service_bus = None
+        self.blob_container = None
+        if self.settings.audit_backend == "azure":
+            credential = DefaultAzureCredential()
+            self.service_bus = ServiceBusClient(
+                fully_qualified_namespace=self.settings.azure_service_bus_namespace,
+                credential=credential,
+            )
+            self.blob_container = BlobServiceClient(
+                account_url=self.settings.azure_blob_account_url,
+                credential=credential,
+            ).get_container_client(self.settings.azure_blob_container)
+            return
         self.sqs = boto3.client(
             "sqs",
             region_name=self.settings.aws_region,
@@ -52,6 +70,21 @@ class AuditWorker:
                 time.sleep(self.settings.worker_poll_seconds)
 
     def poll_once(self) -> int:
+        if self.service_bus is not None:
+            with self.service_bus.get_queue_receiver(
+                queue_name=self.settings.azure_service_bus_queue,
+                max_wait_time=1,
+            ) as receiver:
+                messages = receiver.receive_messages(
+                    max_message_count=self.settings.worker_batch_size,
+                    max_wait_time=1,
+                )
+                for message in messages:
+                    task = self._parse_azure_message(message)
+                    self.persist_audit_blob(task)
+                    receiver.complete_message(message)
+                    logger.info({"event": "audit_task_processed", "request_id": task.request_id})
+                return len(messages)
         response = self.sqs.receive_message(
             QueueUrl=self.settings.audit_queue_url,
             MaxNumberOfMessages=self.settings.worker_batch_size,
@@ -79,16 +112,41 @@ class AuditWorker:
             queue_url=self.settings.audit_queue_url,
         )
 
+    def _parse_azure_message(self, message: object) -> AuditTask:
+        payload = json.loads(str(message))
+        attributes = getattr(message, "application_properties", {}) or {}
+        normalized = {
+            (key.decode() if isinstance(key, bytes) else key):
+            (value.decode() if isinstance(value, bytes) else value)
+            for key, value in attributes.items()
+        }
+        return AuditTask(
+            request_id=normalized.get("request_id") or payload["request_id"],
+            tenant_id=normalized.get("tenant_id") or payload["tenant_id"],
+            response=InferenceResponse(**payload),
+            receipt_handle=message,
+            queue_url=self.settings.azure_service_bus_queue,
+        )
+
     def persist_audit_blob(self, task: AuditTask) -> None:
         object_key = f"audit/{task.tenant_id}/{task.request_id}.json"
         body = task.response.model_dump_json().encode("utf-8")
-        self.s3.put_object(
-            Bucket=self.settings.s3_bucket,
-            Key=object_key,
-            Body=body,
-            ContentType="application/json",
-        )
-        audit_blob_uri = f"s3://{self.settings.s3_bucket}/{object_key}"
+        if self.blob_container is not None:
+            self.blob_container.upload_blob(
+                name=object_key,
+                data=body,
+                overwrite=True,
+                content_settings=ContentSettings(content_type="application/json"),
+            )
+            audit_blob_uri = f"azureblob://{self.settings.azure_blob_container}/{object_key}"
+        else:
+            self.s3.put_object(
+                Bucket=self.settings.s3_bucket,
+                Key=object_key,
+                Body=body,
+                ContentType="application/json",
+            )
+            audit_blob_uri = f"s3://{self.settings.s3_bucket}/{object_key}"
         with self.session_factory() as session:
             audit_row = session.query(RequestAudit).filter_by(request_id=task.request_id).one_or_none()
             if audit_row is None:

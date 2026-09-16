@@ -1,6 +1,8 @@
 import logging
 
 import boto3
+from azure.identity import DefaultAzureCredential
+from azure.servicebus import ServiceBusClient, ServiceBusMessage
 
 from app.core.config import Settings
 from app.db.models import RequestAudit
@@ -23,9 +25,15 @@ class AuditService:
                 aws_access_key_id=settings.aws_access_key_id or None,
                 aws_secret_access_key=settings.aws_secret_access_key or None,
             )
-            if settings.backend_mode == "self_hosted"
+            if settings.backend_mode == "self_hosted" and settings.audit_backend == "aws"
             else None
         )
+        self.service_bus = None
+        if settings.backend_mode == "self_hosted" and settings.audit_backend == "azure":
+            self.service_bus = ServiceBusClient(
+                fully_qualified_namespace=settings.azure_service_bus_namespace,
+                credential=DefaultAzureCredential(),
+            )
 
     async def record(
         self, context: RequestContext, response: InferenceResponse, cache_hit: bool
@@ -63,6 +71,18 @@ class AuditService:
                     },
                 },
             )
+        if self.service_bus is not None and self.settings.azure_service_bus_queue:
+            message = ServiceBusMessage(
+                response.model_dump_json(),
+                application_properties={
+                    "request_id": context.request_id,
+                    "tenant_id": context.tenant_id or "unknown",
+                },
+            )
+            with self.service_bus.get_queue_sender(
+                queue_name=self.settings.azure_service_bus_queue
+            ) as sender:
+                sender.send_messages(message)
         logger.info(
             {
                 "event": "proxy_request_completed",
@@ -75,5 +95,6 @@ class AuditService:
                 "cache_hit": cache_hit,
                 "plugin_bindings": context.plugin_bindings,
                 "audit_queue_url": self.settings.audit_queue_url,
+                "audit_backend": self.settings.audit_backend,
             }
         )

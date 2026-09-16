@@ -30,6 +30,8 @@ passing code and CI are not activation evidence. No Stripe product, price,
 webhook, or customer entitlement is changed by this code. See
 `docs/architecture/VIRTUAPET_INTEGRATION.md`.
 
+Layer8 now has an isolated Azure staging stack. The API runs in Azure Container Apps with dedicated PostgreSQL, Azure Managed Redis, Key Vault, Blob Storage, Service Bus, and managed identities; Hostinger continues to serve the static website. Render remains the public API target until Azure passes the acceptance gates in `docs/architecture/AZURE_STAGING_DEPLOYMENT.md`. The source supports both AWS S3/SQS and Azure Blob/Service Bus audit backends; the Azure worker remains disabled until its new immutable image and live processing path pass acceptance.
+
 ## Production architecture
 
 | Surface | Address | Responsibility |
