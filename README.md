@@ -22,8 +22,11 @@ for every decision. It does not use platform-admin or internal-spatial bypasses.
 
 The integration remains inactive until an operator provisions a managed P-256
 signing key, separate link and policy audiences, an explicit VirtuaPet-to-Layer8
-tenant map, Redis, and dedicated scoped keys. No Stripe product, price, webhook,
-or customer entitlement is changed by this code. See
+tenant map, Redis, and dedicated per-tenant keys scoped exactly to
+`virtuapet:policy`. A 2026-09-16 review found no local production environment
+file or cloud evidence that those integration credentials had been provisioned;
+passing code and CI are not activation evidence. No Stripe product, price,
+webhook, or customer entitlement is changed by this code. See
 `docs/architecture/VIRTUAPET_INTEGRATION.md`.
 
 ## Production architecture
