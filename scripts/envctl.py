@@ -45,9 +45,9 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 ENV_FILE = REPO_ROOT / "env" / "production.env"
@@ -538,7 +538,7 @@ def _plan(target: str, service_name: str) -> tuple[RenderClient, dict, dict[str,
 
 
 def cmd_diff(args: argparse.Namespace) -> int:
-    client, service, remote, desired = _plan(args.target, args.service)
+    _client, service, remote, desired = _plan(args.target, args.service)
     print(f"service: {service['name']}  ({service['id']})\n")
 
     added = sorted(set(desired) - set(remote))

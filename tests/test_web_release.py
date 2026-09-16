@@ -41,10 +41,17 @@ def test_sale_pages_and_legal_links_are_in_the_public_source_of_truth():
     ):
         assert f'slug: "{slug}"' in seo_content
 
+    # The footer is rendered from FOOTER_NAV rather than literal <a href="...">.
+    # Check both its link data and the rendering path; keep the existing UI intact.
+    footer_navigation = marketing_shell.split("const FOOTER_NAV = [", 1)[1].split("] as const;", 1)[0]
+    assert "{FOOTER_NAV.map((group)" in marketing_shell
+    assert "{group.links.map((link)" in marketing_shell
+    assert "<a href={link.href}>{link.label}</a>" in marketing_shell
+    assert "<FooterNav />" in marketing_shell
     for href in (
         "/contact/",
         "/privacy/",
         "/terms/",
         "/acceptable-use/",
     ):
-        assert f'href="{href}"' in marketing_shell
+        assert f'href: "{href}"' in footer_navigation

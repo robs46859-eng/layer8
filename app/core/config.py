@@ -68,6 +68,17 @@ class Settings(BaseSettings):
         default="",
         alias="INTERNAL_SPATIAL_TENANT_IDS",
     )
+    # Disabled until an operator provisions the cross-service trust and tenant mapping.
+    virtuapet_integration_enabled: bool = Field(default=False, alias="VIRTUAPET_INTEGRATION_ENABLED")
+    virtuapet_signing_private_key: str = Field(default="", alias="VIRTUAPET_SIGNING_PRIVATE_KEY", repr=False)
+    virtuapet_signing_key_id: str = Field(default="", alias="VIRTUAPET_SIGNING_KEY_ID")
+    virtuapet_policy_issuer: str = Field(default="", alias="VIRTUAPET_POLICY_ISSUER")
+    virtuapet_policy_audience: str = Field(default="", alias="VIRTUAPET_POLICY_AUDIENCE")
+    virtuapet_link_audience: str = Field(default="", alias="VIRTUAPET_LINK_AUDIENCE")
+    virtuapet_tenant_map_json: str = Field(default="", alias="VIRTUAPET_TENANT_MAP_JSON")
+    virtuapet_rate_limit_per_minute: int = Field(
+        default=60, ge=1, le=600, alias="VIRTUAPET_RATE_LIMIT_PER_MINUTE"
+    )
     cors_allowed_origins: str = Field(
         default=(
             "http://localhost:3000,http://127.0.0.1:3000,"

@@ -11,6 +11,21 @@ The repository combines:
 - PostgreSQL, Redis, S3-compatible archive, and queue integrations;
 - deployment, migration, and launch runbooks in `docs/runbooks`.
 
+## VirtuaPet policy integration
+
+Layer8 Adaptive now includes a **default-off** VirtuaPet boundary at
+`/v1/integrations/virtuapet`. A verified Clerk organization session can mint a
+five-minute, challenge-bound account proof. A dedicated tenant API key with the
+`virtuapet:policy` scope can then request a short-lived signed policy decision.
+The provider rereads the current tenant, API-key, billing, and entitlement state
+for every decision. It does not use platform-admin or internal-spatial bypasses.
+
+The integration remains inactive until an operator provisions a managed P-256
+signing key, separate link and policy audiences, an explicit VirtuaPet-to-Layer8
+tenant map, Redis, and dedicated scoped keys. No Stripe product, price, webhook,
+or customer entitlement is changed by this code. See
+`docs/architecture/VIRTUAPET_INTEGRATION.md`.
+
 ## Production architecture
 
 | Surface | Address | Responsibility |
