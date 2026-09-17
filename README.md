@@ -53,8 +53,9 @@ The repository combines:
   `bpc_1TDTW96X8IBUtLKfZd4HKkRk` is active. The live webhook destination is
   active with all 11 required events. Its signing secret and live API key are attached through Key Vault references; signed live-mode acceptance passes.
 - VirtuaPet organizations, tenant mappings, and distinct policy keys are now
-  provisioned. The integration flags remain off until authenticated two-tenant
-  acceptance completes.
+  provisioned. Layer8 revision `layer8-staging-api--vpon` and VirtuaPet
+  revision `virtuapet-staging-api--linkson` run the bounded identity-link
+  rehearsal; policy enforcement remains off.
 
 ### Production readiness checklist
 
@@ -86,8 +87,9 @@ The repository combines:
 - [ ] Approve and execute the `api.salti8.com` custom-domain/TLS, DNS, and Stripe
   webhook cutover with owners, monitoring, authenticated smoke tests, and a
   timed rollback decision.
-- [ ] Enable the default-off Layer8/VirtuaPet flags only after every integration
-  gate passes.
+- [x] Enable only the identity-link rehearsal flags after configuration review;
+  keep policy disabled.
+- [ ] Enable policy only after both links and the denial/failure matrix pass.
 
 The project is **staging-ready at the infrastructure and Clerk-configuration
 layers, but not fully production-ready**. The outstanding items require real
@@ -96,21 +98,21 @@ traffic cutover; health checks and synthetic mock evidence do not satisfy them.
 
 ## VirtuaPet policy integration
 
-Layer8 Adaptive now includes a **default-off** VirtuaPet boundary at
+Layer8 Adaptive now includes a **default-off, explicitly gated** VirtuaPet boundary at
 `/v1/integrations/virtuapet`. A verified Clerk organization session can mint a
 five-minute, challenge-bound account proof. A dedicated tenant API key with the
 `virtuapet:policy` scope can then request a short-lived signed policy decision.
 The provider rereads the current tenant, API-key, billing, and entitlement state
 for every decision. It does not use platform-admin or internal-spatial bypasses.
 
-The integration remains inactive. Managed P-256 signing material, separate link
+The identity-link rehearsal is active while policy enforcement remains inactive. Managed P-256 signing material, separate link
 and policy audiences, Redis, public verification material, explicit UUID-to-
 Layer8 mappings, and dedicated per-tenant keys scoped exactly to
 `virtuapet:policy` are present in the isolated Azure staging environments. Both
-Layer8 and VirtuaPet enable
-flags remain false. The Azure services are dependency-ready, but the public
-Render endpoint remains suspended; neither condition is VirtuaPet activation
-evidence. No Stripe product, price, webhook, or customer entitlement is changed
+Layer8 `VIRTUAPET_INTEGRATION_ENABLED` and VirtuaPet
+`LAYER8_IDENTITY_LINKS_ENABLED` are true on healthy rehearsal revisions;
+`LAYER8_POLICY_ENABLED` remains false. This configuration is not completed
+VirtuaPet activation evidence. No Stripe product, price, webhook, or customer entitlement is changed
 by this code. See
 `docs/architecture/VIRTUAPET_INTEGRATION.md`.
 

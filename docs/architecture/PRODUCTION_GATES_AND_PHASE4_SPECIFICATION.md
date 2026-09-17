@@ -1,9 +1,9 @@
 # Production Gates and Phase 4 Operational Validation Specification
 
-Document ID: `SPEC-PROD-PHASE4-001`  
-Date: September 17, 2026  
-Status: Authoritative Architectural Specification  
-Target Systems: SALTI8 / Layer8 Adaptive (`api.salti8.com`) & VirtuaPet (`api.virtuapet.com`)  
+Document ID: `SPEC-PROD-PHASE4-001`
+Date: September 17, 2026
+Status: Authoritative Architectural Specification
+Target Systems: SALTI8 / Layer8 Adaptive (`api.salti8.com`) & VirtuaPet (`api.virtuapet.com`)
 
 ---
 

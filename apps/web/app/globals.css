@@ -1198,6 +1198,9 @@ a {
   font-size: 0.68rem;
   text-transform: uppercase;
 }
+.virtuapetLinkPanel { gap: 14px; display: grid; }
+.virtuapetLinkPanel textarea { width: 100%; resize: vertical; border: 1px solid var(--line-strong); background: var(--canvas-raised); color: var(--text); padding: 12px; font-family: var(--font-technical); font-size: .76rem; line-height: 1.45; }
+.virtuapetLinkPanel .button { justify-self: start; }
 
 .evidenceHeader {
   min-height: 62px;

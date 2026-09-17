@@ -52,6 +52,9 @@ Status captured: 2026-09-17 during the authorized Azure cutover.
   user can access only the mapped tenant, complete two Entra-backed VirtuaPet
   identity links, prove correct-tenant allow and cross-tenant denial, then
   enable the default-off integration flags.
+- [x] Enable the bounded identity-link rehearsal on healthy Layer8 `--vpon`
+  and VirtuaPet `--linkson` revisions while keeping VirtuaPet policy
+  enforcement disabled; public readiness and anonymous denial still pass.
 
 ## Remaining build-out phases
 

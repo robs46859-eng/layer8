@@ -25,6 +25,13 @@ type CustomerApiKey = {
   created_at: string;
 };
 
+type VirtuaPetChallenge = {
+  subject: string;
+  tenantId: string;
+  challengeId: string;
+  nonce: string;
+};
+
 function readError(payload: unknown): string {
   if (
     payload &&
@@ -132,6 +139,9 @@ export function BillingDashboard({
   const [newApiKey, setNewApiKey] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState("");
+  const [virtuapetChallenge, setVirtuapetChallenge] = useState("");
+  const [virtuapetProof, setVirtuapetProof] = useState("");
+  const [virtuapetLinkStatus, setVirtuapetLinkStatus] = useState("");
   const normalizedApiBaseUrl = apiBaseUrl.replace(/\/+$/, "");
 
   const customerRequest = useCallback(
@@ -292,6 +302,34 @@ export function BillingDashboard({
           ? reason.message
           : "Your API key could not be created.",
       );
+    } finally {
+      setPending("");
+    }
+  }
+
+  async function createVirtuaPetProof() {
+    setPending("virtuapet-link");
+    setVirtuapetProof("");
+    setVirtuapetLinkStatus("");
+    try {
+      const parsed = JSON.parse(virtuapetChallenge) as Partial<VirtuaPetChallenge>;
+      const required = ["subject", "tenantId", "challengeId", "nonce"] as const;
+      if (required.some((field) => typeof parsed[field] !== "string" || !parsed[field])) {
+        throw new Error("Paste a complete VirtuaPet challenge.");
+      }
+      const response = await customerRequest("/v1/integrations/virtuapet/link-proof", {
+        method: "POST",
+        body: JSON.stringify(Object.fromEntries(required.map((field) => [field, parsed[field]]))),
+      });
+      const payload = await readPayload(response);
+      if (!response.ok) throw new Error(readError(payload));
+      const proofToken = payload && typeof payload === "object" && "proofToken" in payload && typeof payload.proofToken === "string"
+        ? payload.proofToken : "";
+      if (!proofToken) throw new Error("Layer8 returned an incomplete proof response.");
+      setVirtuapetProof(proofToken);
+      setVirtuapetLinkStatus("Proof ready. Complete it in the original VirtuaPet session before it expires.");
+    } catch (reason: unknown) {
+      setVirtuapetLinkStatus(reason instanceof Error ? reason.message : "The proof could not be created.");
     } finally {
       setPending("");
     }
@@ -471,6 +509,20 @@ export function BillingDashboard({
           ) : (
             <p>No paid entitlements have been provisioned yet.</p>
           )}
+        </section>
+
+        <section className="entitlementList virtuapetLinkPanel">
+          <p className="eyebrow">VirtuaPet staging link</p>
+          <h2>Connect this Layer8 organization.</h2>
+          <p>Paste the one-time challenge from the matching Entra-authenticated VirtuaPet session. The Clerk token and proof remain in browser memory and are never placed in a URL.</p>
+          <label htmlFor="virtuapet-challenge">VirtuaPet challenge</label>
+          <textarea id="virtuapet-challenge" rows={7} value={virtuapetChallenge} autoComplete="off" spellCheck={false}
+            onChange={(event) => setVirtuapetChallenge(event.target.value)} />
+          <button className="button buttonPrimary" disabled={Boolean(pending)} onClick={() => void createVirtuaPetProof()}>
+            {pending === "virtuapet-link" ? "Creating proof…" : "Create signed proof"}
+          </button>
+          {virtuapetProof ? <><label htmlFor="virtuapet-proof">Signed proof</label><textarea id="virtuapet-proof" rows={5} readOnly value={virtuapetProof} /></> : null}
+          {virtuapetLinkStatus ? <p className="authNotice" role="status">{virtuapetLinkStatus}</p> : null}
         </section>
 
         {account?.entitlements.includes("api_access") ? (

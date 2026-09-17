@@ -89,10 +89,10 @@ Update on 2026-09-17: the action group and two metric rules now exist. The remai
 ## Managed VirtuaPet trust material
 
 - Layer8 Key Vault owns the P-256 PKCS8 signing private key, key ID `vp-layer8-stg-20260917-01`, distinct policy/link audiences, issuer, and public JWKS.
-- The Layer8 Container App reads these through its user-assigned identity and remains `VIRTUAPET_INTEGRATION_ENABLED=false` because no approved tenant map or scoped tenant credentials exist.
+- The Layer8 Container App reads these through its user-assigned identity. The approved tenant map and scoped tenant credentials now exist, and revision `layer8-staging-api--vpon` runs the bounded link rehearsal with `VIRTUAPET_INTEGRATION_ENABLED=true`.
 - VirtuaPet has dedicated identity `id-virtuapet-staging` and vault `kv-virtuapet-stg-f7318c`. It stores only the pinned public JWKS/key ID and a separate random 32-byte link-encryption key.
-- VirtuaPet revision `virtuapet-staging-api--0000002` has policy and identity-link endpoints configured but both enable flags remain false. Health and readiness returned 200.
-- Never enable either service until two real tenant UUIDs, two Clerk organization IDs, explicit mappings, and two distinct API keys scoped exactly to `virtuapet:policy` have been provisioned and tested.
+- VirtuaPet revision `virtuapet-staging-api--linkson` has identity links enabled and policy disabled. Health and readiness return 200.
+- Do not enable policy until both signed links and the full denial/failure matrix pass.
 
 ## Browser and CORS evidence
 
