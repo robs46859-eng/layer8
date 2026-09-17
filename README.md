@@ -28,9 +28,45 @@ The repository combines:
 ### Current deployment status
 
 - The SALTI8 static site remains on Hostinger and the public `api.salti8.com` DNS name still points to the suspended Render service.
-- An isolated Azure staging API is live at `layer8-staging-api.niceground-f0c7cfe6.westus3.azurecontainerapps.io`; its PostgreSQL, Redis, Blob Storage, and Service Bus readiness checks pass.
-- The scheduled Azure audit worker is deployed from the same immutable image and its first manual execution succeeded.
-- Clerk, Stripe, AI-provider, and VirtuaPet production activation is intentionally incomplete. Passing readiness does not authorize DNS cutover, webhook movement, tenant import, or integration enablement.
+- An isolated Azure staging API is live at `layer8-staging-api.niceground-f0c7cfe6.westus3.azurecontainerapps.io`. Revision `layer8-staging-api--clerk5bfb` serves 100% of staging traffic from immutable image `sha-5bfb6f7`; PostgreSQL, Redis, Blob Storage, and Service Bus readiness checks pass.
+- The scheduled Azure audit worker is deployed from the same immutable image, and manual execution `layer8-audit-worker-stcpf04` succeeded.
+- SALTI8 Development Clerk verification is configured through a Key Vault-backed public key. Staging A and B each have a separate user and map to separate active Layer8 tenants. Authenticated two-browser tenant-isolation acceptance remains open.
+- Stripe, real AI-provider, and VirtuaPet production activation is intentionally incomplete. Passing readiness does not authorize DNS cutover, webhook movement, tenant import, or integration enablement.
+
+### Production readiness checklist
+
+- [x] CI, immutable image publication, Azure API deployment, dependency readiness,
+  audit-worker deployment, and rollback drill.
+- [x] Separate SALTI8 Development organizations, users, and active Layer8 tenant
+  mappings; Clerk issuer and public verifier configured on the Azure candidate.
+- [x] Trusted SALTI8 CORS preflight succeeds; an untrusted origin and invalid
+  customer sessions fail closed.
+- [ ] Host a Development Clerk web build on an explicitly allowed staging origin.
+- [ ] Keep one authenticated session for each staging user and prove correct-
+  tenant access plus cross-tenant denial, expiry, membership removal, and
+  revocation.
+- [ ] Provide the two real VirtuaPet organization UUIDs and map them to the two
+  Layer8 tenants. Layer8 tenant IDs such as `salti8-staging-a` are not VirtuaPet
+  UUIDs.
+- [ ] Create two distinct server-side keys scoped only to `virtuapet:policy`,
+  store them in VirtuaPet Key Vault, and validate link, consent, replay,
+  cancellation, expiry, revocation, tenant mismatch, and Redis-failure paths.
+- [ ] Configure Stripe test-mode secrets, Prices, portal, and webhook; prove
+  signed acceptance, unsigned rejection, Checkout, entitlement, cancellation,
+  and portal behavior.
+- [ ] Prove real provider inference and tenant-isolated database, queue, worker,
+  and Blob audit evidence for both tenants.
+- [ ] Confirm an actual alert notification and restart recovery.
+- [ ] Approve and execute the `api.salti8.com` custom-domain/TLS, DNS, and Stripe
+  webhook cutover with owners, monitoring, authenticated smoke tests, and a
+  timed rollback decision.
+- [ ] Enable the default-off Layer8/VirtuaPet flags only after every integration
+  gate passes.
+
+The project is **staging-ready at the infrastructure and Clerk-configuration
+layers, but not fully production-ready**. The outstanding items require real
+authenticated sessions, production-adjacent external services, or a deliberate
+traffic cutover; health checks and synthetic mock evidence do not satisfy them.
 
 ## VirtuaPet policy integration
 
@@ -41,17 +77,18 @@ five-minute, challenge-bound account proof. A dedicated tenant API key with the
 The provider rereads the current tenant, API-key, billing, and entitlement state
 for every decision. It does not use platform-admin or internal-spatial bypasses.
 
-The integration remains inactive until the Azure staging acceptance is complete and an operator provisions a managed P-256
-signing key, separate link and policy audiences, an explicit VirtuaPet-to-Layer8
-tenant map, Redis, and dedicated per-tenant keys scoped exactly to
-`virtuapet:policy`. A 2026-09-16 review found no local production environment
-file or cloud evidence that those integration credentials had been provisioned.
-The Azure service is dependency-ready, but the public Render endpoint remains suspended;
-neither condition is VirtuaPet activation evidence. No Stripe product, price,
-webhook, or customer entitlement is changed by this code. See
+The integration remains inactive. Managed P-256 signing material, separate link
+and policy audiences, Redis, and public verification material are present in the
+isolated Azure staging environments, but the two canonical VirtuaPet organization
+UUIDs, explicit UUID-to-Layer8 mappings, and dedicated per-tenant keys scoped
+exactly to `virtuapet:policy` are still missing. Both Layer8 and VirtuaPet enable
+flags remain false. The Azure services are dependency-ready, but the public
+Render endpoint remains suspended; neither condition is VirtuaPet activation
+evidence. No Stripe product, price, webhook, or customer entitlement is changed
+by this code. See
 `docs/architecture/VIRTUAPET_INTEGRATION.md`.
 
-Layer8 now has an isolated Azure staging stack. The API runs in Azure Container Apps with dedicated PostgreSQL, Azure Managed Redis, Key Vault, Blob Storage, Service Bus, and managed identities; Hostinger continues to serve the static website. Render remains the public API target until Azure passes the acceptance gates in `docs/architecture/AZURE_STAGING_DEPLOYMENT.md`. The source supports both AWS S3/SQS and Azure Blob/Service Bus audit backends; the Azure worker remains disabled until its new immutable image and live processing path pass acceptance.
+Layer8 now has an isolated Azure staging stack. The API runs in Azure Container Apps with dedicated PostgreSQL, Azure Managed Redis, Key Vault, Blob Storage, Service Bus, and managed identities; Hostinger continues to serve the static website. Render remains the public API target until Azure passes every gate in `docs/runbooks/AZURE_PRE_CUTOVER.md`. The source supports both AWS S3/SQS and Azure Blob/Service Bus audit backends; the Azure worker is deployed and has completed both scheduled and manual executions.
 
 ## Production architecture
 

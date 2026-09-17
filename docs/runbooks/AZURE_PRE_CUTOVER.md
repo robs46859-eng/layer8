@@ -7,7 +7,8 @@ Status: staging deployed; production traffic has not moved. This runbook stops i
 - Resource group: `rg-layer8-staging-westus3`
 - Container App: `layer8-staging-api`
 - Audit worker job: `layer8-audit-worker`
-- Candidate image: `ghcr.io/robs46859-eng/layer8:sha-3916de4`
+- Candidate revision: `layer8-staging-api--clerk5bfb`
+- Candidate image: `ghcr.io/robs46859-eng/layer8:sha-5bfb6f7`
 - Candidate FQDN: `layer8-staging-api.niceground-f0c7cfe6.westus3.azurecontainerapps.io`
 - Public API DNS: `api.salti8.com` still targets Render and is not part of staging acceptance.
 
@@ -24,8 +25,8 @@ Never copy secret values into this file, shell history, CI output, or tickets. K
 - [x] Scheduled audit worker runs from the same immutable image.
 - [x] Application rollback to `sha-6049ea4` and restoration to `sha-3916de4` both returned healthy and ready.
 - [x] An authorized mock inference produced a database audit row, Service Bus delivery, and Blob object.
-- [ ] Two real approved staging tenants pass authenticated isolation and cross-tenant denial tests. `salti8-staging-a` and `salti8-staging-b` now map to separate SALTI8 Development organizations, but browser-session acceptance remains open.
-- [ ] Clerk authenticated customer and billing flows pass against the candidate host. The Development issuer and public verifier are known and the public verifier is in Layer8 Key Vault; they are not yet attached to a deployed candidate revision.
+- [ ] Two real approved staging tenants pass authenticated isolation and cross-tenant denial tests. `salti8-staging-a` and `salti8-staging-b` map to separate SALTI8 Development organizations and each organization now has its separate invited member, but browser-session acceptance remains open.
+- [ ] Clerk authenticated customer and billing flows pass against the candidate host. The Development issuer and Key Vault-backed public verifier are attached to revision `layer8-staging-api--clerk5bfb`; the remaining work requires an explicitly allowed Development web origin and one authenticated session per organization.
 - [ ] Stripe test-mode signed webhook acceptance and unsigned rejection pass against the candidate host. No Stripe test secret, webhook secret, test Price IDs, or portal configuration was present in managed configuration.
 - [x] Azure action group `ag-layer8-staging` and critical no-replica/high-severity restart alerts are enabled for the signed-in Azure operator email.
 - [ ] Confirm delivery of an alert notification and pass restart recovery. Azure accepted the receiver and rules, but the CLI test-notification operation returned `no valid receivers`; do not claim delivered email until the recipient confirms it.
@@ -45,6 +46,12 @@ SALTI8 Development currently uses issuer `https://deep-emu-94.clerk.accounts.dev
 | `org_3JROvg2ieivvKt1IrGexqN0tcMQ` (`SALTI8 Staging B`) | `salti8-staging-b` |
 
 Clerk v2 session tokens carry the active organization in `o.id`; legacy tokens use `org_id`. The API accepts both only after signature verification and rejects malformed or conflicting values. Final acceptance requires one real session for each organization, an allowed browser origin, and successful correct-tenant plus cross-tenant-denial checks against the candidate revision.
+
+Current members are `rob@virtuapet.com` in SALTI8 Staging A and
+`robs46859@gmail.com` in SALTI8 Staging B. The dashboard reports one member in
+each organization. These memberships do not establish a VirtuaPet tenant map:
+VirtuaPet remains on Microsoft Entra and still requires its two canonical
+organization UUIDs before the integration can be provisioned.
 
 The audit acceptance request `req_b35a610189964c378b6ffa89ea117626` completed the ordered pipeline with the mock provider. Worker execution `layer8-audit-worker-0bavldi` succeeded and wrote `audit/cutover-audit-20260916/req_b35a610189964c378b6ffa89ea117626.json` as a 372-byte `application/json` Blob. The temporary API key was revoked, the temporary tenant was disabled, and the temporary entitlement job was deleted. The disabled test record and audit object remain as acceptance evidence.
 
@@ -69,7 +76,7 @@ Expected results are 200, 200, and 401 respectively. A healthy probe is necessar
 
 The database migration set must remain backward-compatible with both images used in the drill. Never roll the database backward during an application rollback.
 
-The 2026-09-16 drill created revision `layer8-staging-api--rollback6049`, returned 200 from health and readiness, restored image `sha-3916de4`, and returned 200 from readiness again. The current release-candidate revision after scale configuration is `layer8-staging-api--0000002`, with one minimum and three maximum replicas.
+The 2026-09-16 drill created revision `layer8-staging-api--rollback6049`, returned 200 from health and readiness, restored image `sha-3916de4`, and returned 200 from readiness again. That checkpoint used revision `layer8-staging-api--0000002`; the current candidate is recorded at the top of this runbook.
 
 ## DNS and monitoring preparation
 
@@ -92,7 +99,10 @@ Update on 2026-09-17: the action group and two metric rules now exist. The remai
 - Layer8 accepted the `https://salti8.com` preflight and returned its exact origin; an untrusted origin returned 400 without an allow-origin header.
 - VirtuaPet accepted the `https://virtuapet.com` preflight and returned its exact origin.
 - `salti8.com`, `virtuapet.com`, and `api.virtuapet.com/healthz` returned successful TLS verification.
-- Authenticated browser acceptance remains open because no real Clerk session and mapped organization were available.
+- Authenticated browser acceptance remains open. The organizations, members,
+  verifier, and Layer8 mappings now exist, but a Development Clerk frontend on
+  an explicitly allowed origin and two retained authenticated sessions are
+  still required for correct-tenant and cross-tenant tests.
 
 ## Custom-domain records required at cutover
 
