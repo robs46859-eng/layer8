@@ -24,14 +24,27 @@ Never copy secret values into this file, shell history, CI output, or tickets. K
 - [x] Scheduled audit worker runs from the same immutable image.
 - [x] Application rollback to `sha-6049ea4` and restoration to `sha-3916de4` both returned healthy and ready.
 - [x] An authorized mock inference produced a database audit row, Service Bus delivery, and Blob object.
-- [ ] Two real approved staging tenants pass isolation and cross-tenant denial tests. No active real Layer8 tenants or Clerk organization mappings existed on 2026-09-17.
-- [ ] Clerk authenticated customer and billing flows pass against the candidate host. No Clerk verifier secrets were present in the Layer8 vault or GitHub environments.
+- [ ] Two real approved staging tenants pass authenticated isolation and cross-tenant denial tests. `salti8-staging-a` and `salti8-staging-b` now map to separate SALTI8 Development organizations, but browser-session acceptance remains open.
+- [ ] Clerk authenticated customer and billing flows pass against the candidate host. The Development issuer and public verifier are known and the public verifier is in Layer8 Key Vault; they are not yet attached to a deployed candidate revision.
 - [ ] Stripe test-mode signed webhook acceptance and unsigned rejection pass against the candidate host. No Stripe test secret, webhook secret, test Price IDs, or portal configuration was present in managed configuration.
 - [x] Azure action group `ag-layer8-staging` and critical no-replica/high-severity restart alerts are enabled for the signed-in Azure operator email.
 - [ ] Confirm delivery of an alert notification and pass restart recovery. Azure accepted the receiver and rules, but the CLI test-notification operation returned `no valid receivers`; do not claim delivered email until the recipient confirms it.
 - [ ] The final DNS and webhook change plan has an operator, maintenance window, TTL, rollback owner, and communication plan.
 
-Any unchecked gate blocks cutover. Do not replace a missing real tenant, Clerk session, Stripe test secret, or provider credential with guessed data.
+Any unchecked gate blocks cutover. Do not replace a missing Clerk session, Stripe test secret, or provider credential with guessed data.
+
+## Clerk staging identity
+
+VirtuaPet keeps Microsoft Entra authentication. Clerk belongs to SALTI8/Layer8 customer access. Clerk dashboard workspace IDs are administrative containers and must not be used as customer organization IDs.
+
+SALTI8 Development currently uses issuer `https://deep-emu-94.clerk.accounts.dev`. Its public verifier is stored in Key Vault as `layer8-clerk-dev-jwt-public-key`; the Clerk secret key is not required for JWT verification and must not be copied into this runbook. Layer8 maps these application organizations:
+
+| Clerk organization | Layer8 tenant |
+| --- | --- |
+| `org_3JROrehaWBgw8CD22AWEcyHPWI4` (`SALTI8 Staging A`) | `salti8-staging-a` |
+| `org_3JROvg2ieivvKt1IrGexqN0tcMQ` (`SALTI8 Staging B`) | `salti8-staging-b` |
+
+Clerk v2 session tokens carry the active organization in `o.id`; legacy tokens use `org_id`. The API accepts both only after signature verification and rejects malformed or conflicting values. Final acceptance requires one real session for each organization, an allowed browser origin, and successful correct-tenant plus cross-tenant-denial checks against the candidate revision.
 
 The audit acceptance request `req_b35a610189964c378b6ffa89ea117626` completed the ordered pipeline with the mock provider. Worker execution `layer8-audit-worker-0bavldi` succeeded and wrote `audit/cutover-audit-20260916/req_b35a610189964c378b6ffa89ea117626.json` as a 372-byte `application/json` Blob. The temporary API key was revoked, the temporary tenant was disabled, and the temporary entitlement job was deleted. The disabled test record and audit object remain as acceptance evidence.
 

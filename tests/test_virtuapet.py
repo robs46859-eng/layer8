@@ -16,6 +16,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import sessionmaker
 
+from app.api import billing, dependencies
+from app.api.billing import customer_billing_router
 from app.api.dependencies import get_db_session
 from app.api.virtuapet import virtuapet_router
 from app.core.config import Settings
@@ -102,12 +104,83 @@ def runtime(tmp_path):
     value.engine.dispose()
 
 
-def clerk_token(runtime, **overrides):
+def clerk_token(runtime, *, version=1, **overrides):
     now = int(time.time())
-    claims = {"iss": runtime.settings.clerk_issuer, "sub": "user_real_clerk", "org_id": "org_vp",
+    claims = {"iss": runtime.settings.clerk_issuer, "sub": "user_real_clerk",
               "azp": "https://salti8.com", "iat": now, "nbf": now, "exp": now + 3600}
+    claims.update({"v": 2, "o": {"id": "org_vp"}} if version == 2 else {"org_id": "org_vp"})
     claims.update(overrides)
     return jwt.encode(claims, runtime.clerk_key, algorithm="RS256")
+
+
+@pytest.fixture
+def customer_runtime(runtime, monkeypatch):
+    monkeypatch.setattr(dependencies, "get_settings", lambda: runtime.settings)
+    monkeypatch.setattr(billing, "get_settings", lambda: runtime.settings)
+    runtime.app.include_router(customer_billing_router)
+    return runtime
+
+
+@pytest.mark.parametrize("version", [1, 2])
+def test_clerk_organization_formats_keep_customer_and_link_tenants_separate(customer_runtime, version):
+    runtime = customer_runtime
+    other_vp_tenant = str(uuid4())
+    runtime.service.tenant_map[other_vp_tenant] = "tenant_other"
+    with runtime.factory() as session:
+        session.add(Tenant(id="tenant_other", name="Other tenant", status="active",
+                           clerk_organization_id="org_other"))
+        session.commit()
+
+    for org_id, tenant_id, vp_tenant in [
+        ("org_vp", "tenant_vp", VP_TENANT),
+        ("org_other", "tenant_other", other_vp_tenant),
+    ]:
+        org_claim = {"o": {"id": org_id}} if version == 2 else {"org_id": org_id}
+        token = clerk_token(runtime, version=version, sub=f"user_{tenant_id}", **org_claim)
+        headers = {"Authorization": f"Bearer {token}", "X-Tenant-Id": "untrusted_tenant"}
+        response = runtime.client.get("/v1/customer/billing?tenant_id=untrusted_tenant",
+                                      headers=headers)
+        assert response.status_code == 200
+        assert response.json()["tenant_id"] == tenant_id
+        response = runtime.client.post(BASE + "/link-proof", headers=headers,
+            json={**link_body(), "tenantId": vp_tenant})
+        assert response.status_code == 200
+        claims = jwt.decode(response.json()["proofToken"], runtime.signing_key.public_key(),
+                            algorithms=["ES256"], issuer=runtime.service.issuer,
+                            audience="virtuapet-links")
+        assert claims["providerTenantId"] == tenant_id
+        assert claims["providerOrganizationId"] == org_id
+        wrong_tenant = other_vp_tenant if vp_tenant == VP_TENANT else VP_TENANT
+        assert runtime.client.post(BASE + "/link-proof", headers=headers,
+            json={**link_body(), "tenantId": wrong_tenant}).status_code == 403
+
+
+@pytest.mark.parametrize("override", [
+    {"o": None}, {"o": []}, {"o": {}}, {"o": {"id": ["org_vp"]}},
+    {"o": {"id": " org_vp"}}, {"o": {"id": "org_vp"}, "org_id": "org_other"},
+    {"o": {}, "org_id": "org_vp"}, {"org_id": None},
+])
+def test_bad_v2_claims_cannot_select_or_provision_a_tenant(customer_runtime, override):
+    runtime = customer_runtime
+    headers = {"Authorization": f"Bearer {clerk_token(runtime, version=2, **override)}"}
+    with runtime.factory() as session:
+        before = session.scalar(select(func.count()).select_from(Tenant))
+    assert runtime.client.get("/v1/customer/billing", headers=headers).status_code == 403
+    assert runtime.client.post(BASE + "/link-proof", json=link_body(),
+                               headers=headers).status_code == 403
+    with runtime.factory() as session:
+        assert session.scalar(select(func.count()).select_from(Tenant)) == before
+
+
+def test_v2_organization_is_used_only_after_signature_verification(customer_runtime):
+    runtime = customer_runtime
+    claims = jwt.decode(clerk_token(runtime, version=2), options={"verify_signature": False})
+    forged = jwt.encode(claims, rsa.generate_private_key(public_exponent=65537, key_size=2048),
+                        algorithm="RS256")
+    headers = {"Authorization": f"Bearer {forged}"}
+    assert runtime.client.get("/v1/customer/billing", headers=headers).status_code == 401
+    assert runtime.client.post(BASE + "/link-proof", json=link_body(),
+                               headers=headers).status_code == 401
 
 
 def link_body():

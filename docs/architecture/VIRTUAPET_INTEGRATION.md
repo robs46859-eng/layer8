@@ -26,7 +26,9 @@ scopes cannot substitute for the required integration authentication.
 
 The caller presents a real Clerk session in `Authorization: Bearer <session>`.
 The backend verifies the RS256 signature, issuer, expiration, not-before, issued-at,
-subject, allowed `azp`, and organization claim. It requires a pre-existing active tenant
+subject, allowed `azp`, and organization claim. Current Clerk v2 tokens use `o.id`;
+legacy tokens use `org_id`. The provider accepts either after signature verification and
+rejects malformed or conflicting claims. It requires a pre-existing active tenant
 whose `clerk_organization_id` matches the signed session. Unlike customer signup,
 this route never provisions a tenant, even if self-service signup is enabled.
 

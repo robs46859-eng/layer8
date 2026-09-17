@@ -21,6 +21,7 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.clerk import clerk_organization_id
 from app.core.config import Settings, get_settings
 from app.core.security import split_api_key, verify_api_secret
 from app.db.models import Tenant
@@ -182,17 +183,22 @@ class VirtuaPetService:
             )
         except jwt.InvalidTokenError as exc:
             raise integration_error("virtuapet_invalid_clerk_session", 401) from exc
+        try:
+            organization_id = clerk_organization_id(claims)
+        except ValueError as exc:
+            raise integration_error("virtuapet_invalid_clerk_identity", 403) from exc
         if (not _canonical(claims.get("azp")) or claims.get("azp") not in parties
                 or not _canonical(claims.get("sub"))
-                or not _canonical(claims.get("org_id"), 64)
-                or any(type(claims.get(k)) is not int for k in ("exp", "iat", "nbf"))):
+                or organization_id is None
+                or any(not isinstance(claims.get(k), int) or isinstance(claims.get(k), bool)
+                       for k in ("exp", "iat", "nbf"))):
             raise integration_error("virtuapet_invalid_clerk_identity", 403)
         tenant = session.scalar(select(Tenant).where(
-            Tenant.clerk_organization_id == claims["org_id"]
+            Tenant.clerk_organization_id == organization_id
         ))
         if tenant is None or tenant.status != "active":
             raise integration_error("virtuapet_inactive_organization", 403)
-        return ClerkIdentity(claims["sub"], claims["org_id"], tenant.id, claims["exp"])
+        return ClerkIdentity(claims["sub"], organization_id, tenant.id, claims["exp"])
 
     async def link_proof(self, request: LinkProofRequest, identity: ClerkIdentity) -> str:
         if self.tenant_map.get(str(request.tenantId)) != identity.tenant_id:
@@ -241,7 +247,8 @@ class VirtuaPetService:
             )
             now = int(time.time())
             if (set(claims) != LINK_FIELDS or claims["protocol"] != LINK_PROTOCOL
-                    or any(type(claims.get(k)) is not int for k in ("iat", "exp"))
+                    or any(not isinstance(claims.get(k), int) or isinstance(claims.get(k), bool)
+                           for k in ("iat", "exp"))
                     or not 0 < claims["exp"] - claims["iat"] <= 300
                     or claims["iat"] > now or claims["exp"] <= now
                     or any(not _uuid(claims.get(k)) for k in ("sub", "tenantId", "jti", "challengeId", "nonce"))

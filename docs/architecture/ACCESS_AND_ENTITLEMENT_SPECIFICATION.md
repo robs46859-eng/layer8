@@ -46,7 +46,8 @@ The customer billing screen requires:
 1. a loaded Clerk production instance;
 2. a signed-in Clerk user;
 3. an active Clerk organization selection;
-4. a session token containing `org_id`;
+4. a session token containing Clerk's current v2 `o.id` organization claim or
+   the legacy `org_id` claim;
 5. a valid token issuer and signature;
 6. an allowed `azp` value from `CLERK_AUTHORIZED_PARTIES`;
 7. exactly one active Layer8 tenant mapped to that Clerk organization ID, or
@@ -101,8 +102,10 @@ In the Clerk production dashboard:
 4. copy the stable organization ID beginning with `org_`.
 
 The user currently reaching `Organization required` must be invited to, or
-made a member of, this organization before the selector can produce an
-`org_id`.
+made a member of, this organization before the selector can produce an active
+organization claim. The API verifies the token before reading that claim,
+accepts v2 `o.id` and legacy `org_id`, and rejects malformed or conflicting
+values.
 
 ### Step 3 — map the organization to a Layer8 tenant
 
@@ -211,7 +214,7 @@ Access is correctly provisioned only when:
 - Never expose the platform admin token to the static website.
 - Never use a Clerk publishable key as proof of backend authorization.
 - Never trust a tenant ID supplied by the customer browser; derive it from the
-  signed `org_id` mapping.
+  verified Clerk organization claim and its server-owned tenant mapping.
 - Never treat a successful Checkout redirect as payment confirmation.
 - Never weaken `azp`, issuer, signature or organization checks to unblock a
   user.

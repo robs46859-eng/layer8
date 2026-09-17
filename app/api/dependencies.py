@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.clerk import clerk_organization_id
 from app.core.config import get_settings
 from app.db.models import Tenant
 from app.db.session import get_session_factory
@@ -99,7 +100,13 @@ def require_customer_tenant(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="customer session has an invalid authorized party",
         )
-    organization_id = claims.get("org_id")
+    try:
+        organization_id = clerk_organization_id(claims)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="invalid customer organization identity",
+        ) from exc
     if not organization_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
