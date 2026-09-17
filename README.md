@@ -28,10 +28,17 @@ The repository combines:
 ### Current deployment status
 
 - The SALTI8 static site remains on Hostinger and the public `api.salti8.com` DNS name still points to the suspended Render service.
-- An isolated Azure staging API is live at `layer8-staging-api.niceground-f0c7cfe6.westus3.azurecontainerapps.io`. Revision `layer8-staging-api--clerk5bfb` serves 100% of staging traffic from immutable image `sha-5bfb6f7`; PostgreSQL, Redis, Blob Storage, and Service Bus readiness checks pass.
+- An isolated Azure staging API is live at `layer8-staging-api.niceground-f0c7cfe6.westus3.azurecontainerapps.io`. Revision `layer8-staging-api--vpmap1` serves 100% of staging traffic from immutable image `sha-5bfb6f7`; PostgreSQL, Redis, Blob Storage, and Service Bus readiness checks pass.
 - The scheduled Azure audit worker is deployed from the same immutable image, and manual execution `layer8-audit-worker-stcpf04` succeeded.
 - SALTI8 Development Clerk verification is configured through a Key Vault-backed public key. Staging A and B each have a separate user and map to separate active Layer8 tenants. Authenticated two-browser tenant-isolation acceptance remains open.
-- Stripe, real AI-provider, and VirtuaPet production activation is intentionally incomplete. Passing readiness does not authorize DNS cutover, webhook movement, tenant import, or integration enablement.
+- Stripe live products and the customer portal already exist: Team is $99/month,
+  Business is $299/month, and portal configuration
+  `bpc_1TDTW96X8IBUtLKfZd4HKkRk` is active. The live webhook destination is
+  active with all 11 required events. Its signing secret and the live API key
+  still need to be stored in Key Vault before billing can be enabled.
+- VirtuaPet organizations, tenant mappings, and distinct policy keys are now
+  provisioned. The integration flags remain off until authenticated two-tenant
+  acceptance completes.
 
 ### Production readiness checklist
 
@@ -45,13 +52,16 @@ The repository combines:
 - [ ] Keep one authenticated session for each staging user and prove correct-
   tenant access plus cross-tenant denial, expiry, membership removal, and
   revocation.
-- [ ] Provide the two real VirtuaPet organization UUIDs and map them to the two
-  Layer8 tenants. Layer8 tenant IDs such as `salti8-staging-a` are not VirtuaPet
-  UUIDs.
-- [ ] Create two distinct server-side keys scoped only to `virtuapet:policy`,
-  store them in VirtuaPet Key Vault, and validate link, consent, replay,
-  cancellation, expiry, revocation, tenant mismatch, and Redis-failure paths.
-- [ ] Configure Stripe test-mode secrets, Prices, portal, and webhook; prove
+- [x] Map VirtuaPet Staging A UUID
+  `62335dff-756b-47a7-ba94-95e240c3680d` to `salti8-staging-a` and VirtuaPet
+  Staging B UUID `6d8bed91-b840-4884-9ecb-907b4cf0c65f` to
+  `salti8-staging-b`.
+- [x] Create distinct server-side keys scoped only to `virtuapet:policy` and
+  store the tenant-key map in VirtuaPet Key Vault.
+- [x] Save the expanded 11-event Stripe live webhook selection.
+- [ ] Store the live API and webhook signing secrets in Key Vault and wire the existing live Price IDs
+  (`price_1TyIL16X8IBUtLKflisiPVqI` Team and
+  `price_1TyILs6X8IBUtLKf5HDS6fVs` Business) plus portal configuration. Prove
   signed acceptance, unsigned rejection, Checkout, entitlement, cancellation,
   and portal behavior.
 - [ ] Prove real provider inference and tenant-isolated database, queue, worker,
@@ -78,10 +88,10 @@ The provider rereads the current tenant, API-key, billing, and entitlement state
 for every decision. It does not use platform-admin or internal-spatial bypasses.
 
 The integration remains inactive. Managed P-256 signing material, separate link
-and policy audiences, Redis, and public verification material are present in the
-isolated Azure staging environments, but the two canonical VirtuaPet organization
-UUIDs, explicit UUID-to-Layer8 mappings, and dedicated per-tenant keys scoped
-exactly to `virtuapet:policy` are still missing. Both Layer8 and VirtuaPet enable
+and policy audiences, Redis, public verification material, explicit UUID-to-
+Layer8 mappings, and dedicated per-tenant keys scoped exactly to
+`virtuapet:policy` are present in the isolated Azure staging environments. Both
+Layer8 and VirtuaPet enable
 flags remain false. The Azure services are dependency-ready, but the public
 Render endpoint remains suspended; neither condition is VirtuaPet activation
 evidence. No Stripe product, price, webhook, or customer entitlement is changed

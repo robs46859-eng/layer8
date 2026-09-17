@@ -2,6 +2,23 @@
 
 ## Production-readiness status — 2026-09-17
 
+Latest activation checkpoint: Azure revision `layer8-staging-api--vpmap1`
+receives 100% of staging traffic and includes the explicit VirtuaPet UUID to
+Layer8 tenant map. Entra guests `rob@virtuapet.com` and
+`robs46859@gmail.com` have accepted their invitations. VirtuaPet Staging A is
+`62335dff-756b-47a7-ba94-95e240c3680d`; VirtuaPet Staging B is
+`6d8bed91-b840-4884-9ecb-907b4cf0c65f`. Each tenant has a distinct
+`virtuapet:policy` API key stored only in VirtuaPet Key Vault. No raw key is
+recorded here.
+
+Stripe is confirmed in live mode. Existing active catalog entries are SALTI8
+Team at $99/month (`price_1TyIL16X8IBUtLKflisiPVqI`) and SALTI8 Business at
+$299/month (`price_1TyILs6X8IBUtLKf5HDS6fVs`). Customer portal configuration
+`bpc_1TDTW96X8IBUtLKfZd4HKkRk` is active. Webhook destination
+`we_1TyGny6X8IBUtLKfRnuQQCpE` is active and listens for all 11 required events.
+The live secret key and webhook signing secret still need Key Vault references
+before live billing is enabled.
+
 Layer8 staging now runs revision `layer8-staging-api--clerk5bfb` from immutable
 image `ghcr.io/robs46859-eng/layer8:sha-5bfb6f7` at 100% traffic. GitHub CI run
 `35218108074` passed the test and image-publication jobs for commit
@@ -45,15 +62,17 @@ verification.
 - [ ] Prove each session can access only its mapped Layer8 tenant and that both
   cross-tenant requests fail. Include session expiry, membership removal, and
   key revocation checks.
-- [ ] Supply the two canonical VirtuaPet organization UUIDs. Map each UUID to
-  its approved Layer8 tenant and create two distinct API keys scoped exactly to
-  `virtuapet:policy`; store them only in VirtuaPet's server-side Key Vault.
+- [x] Map the two canonical VirtuaPet organization UUIDs to their approved
+  Layer8 tenants, create distinct API keys scoped exactly to
+  `virtuapet:policy`, and store them only in VirtuaPet's server-side Key Vault.
 - [ ] With both integration enable flags still off, rehearse fresh Entra-backed
   VirtuaPet link challenges, one-time consumption, correct-tenant policy
   decisions, changed-subject/tenant denial, consent revocation, billing
   cancellation, expired proof, replay, API-key revocation, and Redis-outage
   failure.
-- [ ] Configure Stripe test credentials, webhook secret, Price IDs, and portal;
+- [x] Save the 11-event live Stripe webhook selection.
+- [ ] Store the Stripe live secret and webhook secret in Key Vault and wire the
+  verified live Price IDs and portal configuration; then
   pass signed webhook acceptance, unsigned rejection, Checkout, entitlement,
   cancellation, and customer-portal tests against the Azure candidate.
 - [ ] Run a real provider inference for each tenant through the customer API and
