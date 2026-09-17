@@ -24,10 +24,11 @@ Never copy secret values into this file, shell history, CI output, or tickets. K
 - [x] Scheduled audit worker runs from the same immutable image.
 - [x] Application rollback to `sha-6049ea4` and restoration to `sha-3916de4` both returned healthy and ready.
 - [x] An authorized mock inference produced a database audit row, Service Bus delivery, and Blob object.
-- [ ] Two real approved staging tenants pass isolation and cross-tenant denial tests.
-- [ ] Clerk authenticated customer and billing flows pass against the candidate host.
-- [ ] Stripe test-mode signed webhook acceptance and unsigned rejection pass against the candidate host.
-- [ ] Alerts, notification routing, and restart recovery pass. No Azure alert rules were found on 2026-09-16.
+- [ ] Two real approved staging tenants pass isolation and cross-tenant denial tests. No active real Layer8 tenants or Clerk organization mappings existed on 2026-09-17.
+- [ ] Clerk authenticated customer and billing flows pass against the candidate host. No Clerk verifier secrets were present in the Layer8 vault or GitHub environments.
+- [ ] Stripe test-mode signed webhook acceptance and unsigned rejection pass against the candidate host. No Stripe test secret, webhook secret, test Price IDs, or portal configuration was present in managed configuration.
+- [x] Azure action group `ag-layer8-staging` and critical no-replica/high-severity restart alerts are enabled for the signed-in Azure operator email.
+- [ ] Confirm delivery of an alert notification and pass restart recovery. Azure accepted the receiver and rules, but the CLI test-notification operation returned `no valid receivers`; do not claim delivered email until the recipient confirms it.
 - [ ] The final DNS and webhook change plan has an operator, maintenance window, TTL, rollback owner, and communication plan.
 
 Any unchecked gate blocks cutover. Do not replace a missing real tenant, Clerk session, Stripe test secret, or provider credential with guessed data.
@@ -62,6 +63,34 @@ The 2026-09-16 drill created revision `layer8-staging-api--rollback6049`, return
 - Live DNS still resolves `api.salti8.com` through `layer8.onrender.com`; this is expected before cutover.
 - Azure has no `api.salti8.com` custom-domain binding yet. Bind and validate it only as part of the authorized cutover sequence.
 - No metric or scheduled-query alert rules were found in `rg-layer8-staging-westus3`. An action group and notification recipient must be approved before operational alert acceptance can pass.
+
+Update on 2026-09-17: the action group and two metric rules now exist. The remaining monitoring gate is actual notification receipt and restart-recovery evidence.
+
+## Managed VirtuaPet trust material
+
+- Layer8 Key Vault owns the P-256 PKCS8 signing private key, key ID `vp-layer8-stg-20260917-01`, distinct policy/link audiences, issuer, and public JWKS.
+- The Layer8 Container App reads these through its user-assigned identity and remains `VIRTUAPET_INTEGRATION_ENABLED=false` because no approved tenant map or scoped tenant credentials exist.
+- VirtuaPet has dedicated identity `id-virtuapet-staging` and vault `kv-virtuapet-stg-f7318c`. It stores only the pinned public JWKS/key ID and a separate random 32-byte link-encryption key.
+- VirtuaPet revision `virtuapet-staging-api--0000002` has policy and identity-link endpoints configured but both enable flags remain false. Health and readiness returned 200.
+- Never enable either service until two real tenant UUIDs, two Clerk organization IDs, explicit mappings, and two distinct API keys scoped exactly to `virtuapet:policy` have been provisioned and tested.
+
+## Browser and CORS evidence
+
+- Layer8 accepted the `https://salti8.com` preflight and returned its exact origin; an untrusted origin returned 400 without an allow-origin header.
+- VirtuaPet accepted the `https://virtuapet.com` preflight and returned its exact origin.
+- `salti8.com`, `virtuapet.com`, and `api.virtuapet.com/healthz` returned successful TLS verification.
+- Authenticated browser acceptance remains open because no real Clerk session and mapped organization were available.
+
+## Custom-domain records required at cutover
+
+Azure has not bound `api.salti8.com`. Hostinger DNS still points it to Render. During the separately approved cutover window, add ownership verification and replace the API CNAME using the values below, validate the managed certificate, then run authenticated smoke tests before removing rollback:
+
+| Type | Host | Value |
+| --- | --- | --- |
+| TXT | `asuid.api` | `C933AFD753904BB50F319ACB99A46E6F5652305BFD297FF52D26BEB91EB7CE78` |
+| CNAME | `api` | `layer8-staging-api.niceground-f0c7cfe6.westus3.azurecontainerapps.io` |
+
+The CNAME replacement moves production traffic and therefore is the cutover itself, not harmless preparation.
 
 ## Cutover boundary
 
