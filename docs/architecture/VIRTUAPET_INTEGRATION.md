@@ -1,5 +1,14 @@
 # VirtuaPet integration with Layer8 Adaptive by SALTI8
 
+## Deployment update — 2026-09-17
+
+Managed signing material, explicit VirtuaPet organization UUID-to-Layer8 tenant
+mappings, and distinct tenant policy credentials are deployed through Key Vault
+references. The public API cutover is in progress. Activation stays default-off
+until both authenticated Entra/Clerk tenant link and policy drills pass; see
+`../STATUS_AND_REMAINING_PHASES_2026-09-17.md`.
+
+
 Updated: September 16, 2026. Responsible organization: SALTI8.
 
 Status: implemented, default off; local test evidence is not deployed-provider evidence.

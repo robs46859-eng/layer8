@@ -1,6 +1,6 @@
 # Azure pre-cutover runbook
 
-Status: staging deployed; production traffic has not moved. This runbook stops immediately before DNS and Stripe webhook cutover.
+Status: authorized cutover started on 2026-09-17. DNS ownership and the Azure CNAME are published; Azure managed-certificate issuance and public acceptance remain in progress.
 
 ## Release candidate
 
@@ -8,7 +8,7 @@ Status: staging deployed; production traffic has not moved. This runbook stops i
 - Container App: `layer8-staging-api`
 - Audit worker job: `layer8-audit-worker`
 - Candidate revision: `layer8-staging-api--clerk5bfb`
-- Candidate image: `ghcr.io/robs46859-eng/layer8:sha-5bfb6f7`
+- Active cutover image: `ghcr.io/robs46859-eng/layer8:sha-7c77566`
 - Candidate FQDN: `layer8-staging-api.niceground-f0c7cfe6.westus3.azurecontainerapps.io`
 - Public API DNS: `api.salti8.com` still targets Render and is not part of staging acceptance.
 

@@ -1,8 +1,26 @@
 # Layer8 Adaptive Integration Handoff
 
+
+## Cutover update — 2026-09-17
+
+The authorized production API cutover is in progress. Hostinger now publishes
+the Azure ownership TXT record and points `api.salti8.com` at the Azure
+Container Apps hostname. Azure accepted the custom hostname and began issuing
+managed certificate `mc-managedenviron-api-salti8-com-2877`. Do not mark the
+cutover complete until managed TLS and the public health, readiness, CORS, and
+signed-webhook probes pass.
+
+Layer8 runs image `ghcr.io/robs46859-eng/layer8:sha-7c77566`. Stripe live
+secrets are attached through Key Vault references, live mode is enabled, and a
+fresh signed live-mode synthetic event returned HTTP 200; an unsigned event
+returned HTTP 400. Real Checkout, subscription, cancellation, portal, and
+entitlement lifecycle tests remain open. See
+`docs/STATUS_AND_REMAINING_PHASES_2026-09-17.md` for the numbered activation
+checklist and remaining phases.
+
 ## Production-readiness status — 2026-09-17
 
-Latest activation checkpoint: Azure revision `layer8-staging-api--vpmap1`
+Latest activation checkpoint: Azure revision `layer8-staging-api--browsercors`
 receives 100% of staging traffic and includes the explicit VirtuaPet UUID to
 Layer8 tenant map. Entra guests `rob@virtuapet.com` and
 `robs46859@gmail.com` have accepted their invitations. VirtuaPet Staging A is
@@ -16,13 +34,12 @@ Team at $99/month (`price_1TyIL16X8IBUtLKflisiPVqI`) and SALTI8 Business at
 $299/month (`price_1TyILs6X8IBUtLKf5HDS6fVs`). Customer portal configuration
 `bpc_1TDTW96X8IBUtLKfZd4HKkRk` is active. Webhook destination
 `we_1TyGny6X8IBUtLKfRnuQQCpE` is active and listens for all 11 required events.
-The live secret key and webhook signing secret still need Key Vault references
-before live billing is enabled.
+The live secret key and webhook signing secret are attached through Key Vault references. A signed live-mode synthetic webhook returns HTTP 200, while an unsigned request returns HTTP 400.
 
-Layer8 staging now runs revision `layer8-staging-api--clerk5bfb` from immutable
-image `ghcr.io/robs46859-eng/layer8:sha-5bfb6f7` at 100% traffic. GitHub CI run
-`35218108074` passed the test and image-publication jobs for commit
-`5bfb6f7d56220d5ee4b28e911edf104237870afc`. Fresh `/healthz` and `/readyz`
+Layer8 now runs revision `layer8-staging-api--browsercors` from immutable image
+`ghcr.io/robs46859-eng/layer8:sha-7c77566` at 100% traffic. GitHub CI and image
+publication run `35230299072` passed for the Stripe SDK compatibility fix.
+Fresh `/healthz` and `/readyz`
 probes returned 200; PostgreSQL, Redis, Blob Storage, and Service Bus were all
 `ok`. The scheduled audit worker uses the same image, and manual execution
 `layer8-audit-worker-stcpf04` succeeded.

@@ -1,5 +1,14 @@
 # Layer8 Azure staging deployment
 
+## Cutover update — 2026-09-17
+
+The authorized cutover uses immutable image `sha-7c77566` in revision
+`layer8-staging-api--0000004`. Hostinger publishes the Azure ownership TXT and
+the `api.salti8.com` CNAME now targets Container Apps. Azure managed-certificate
+issuance and public-host acceptance are tracked in
+`../STATUS_AND_REMAINING_PHASES_2026-09-17.md`.
+
+
 Status: isolated staging infrastructure and first API revision deployed on 2026-09-16. Render remains the current public DNS target until Azure acceptance passes.
 
 ## Target boundary

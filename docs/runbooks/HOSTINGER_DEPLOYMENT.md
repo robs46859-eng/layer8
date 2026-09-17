@@ -1,5 +1,15 @@
 # Hostinger static deployment
 
+## API cutover update — 2026-09-17
+
+Hostinger still serves the static SALTI8 site. The `api` CNAME has moved from
+suspended Render to
+`layer8-staging-api.niceground-f0c7cfe6.westus3.azurecontainerapps.io`, and the
+Azure `asuid.api` ownership TXT record is present. The static export is rebuilt
+with `NEXT_PUBLIC_API_URL=https://api.salti8.com`; publication follows the
+repository's existing automatic deployment after the cutover commit is pushed.
+
+
 Hostinger is the DNS authority, CDN, TLS endpoint, and static host for
 `salti8.com`. It must not run the SALTI8 website as a persistent Node.js
 process.

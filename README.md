@@ -1,5 +1,23 @@
 # SALTI8
 
+
+## Cutover update — 2026-09-17
+
+The authorized production API cutover is in progress. Hostinger now publishes
+the Azure ownership TXT record and points `api.salti8.com` at the Azure
+Container Apps hostname. Azure accepted the custom hostname and began issuing
+managed certificate `mc-managedenviron-api-salti8-com-2877`. Do not mark the
+cutover complete until managed TLS and the public health, readiness, CORS, and
+signed-webhook probes pass.
+
+Layer8 runs image `ghcr.io/robs46859-eng/layer8:sha-7c77566`. Stripe live
+secrets are attached through Key Vault references, live mode is enabled, and a
+fresh signed live-mode synthetic event returned HTTP 200; an unsigned event
+returned HTTP 400. Real Checkout, subscription, cancellation, portal, and
+entitlement lifecycle tests remain open. See
+`docs/STATUS_AND_REMAINING_PHASES_2026-09-17.md` for the numbered activation
+checklist and remaining phases.
+
 SALTI8 is the product repository for **Layer8 Adaptive by SALTI8**, a
 tenant-aware AI execution gateway with authentication, policy enforcement,
 provider routing, usage controls, billing, and operational evidence.
@@ -27,15 +45,14 @@ The repository combines:
 
 ### Current deployment status
 
-- The SALTI8 static site remains on Hostinger and the public `api.salti8.com` DNS name still points to the suspended Render service.
-- An isolated Azure staging API is live at `layer8-staging-api.niceground-f0c7cfe6.westus3.azurecontainerapps.io`. Revision `layer8-staging-api--vpmap1` serves 100% of staging traffic from immutable image `sha-5bfb6f7`; PostgreSQL, Redis, Blob Storage, and Service Bus readiness checks pass.
+- The SALTI8 static site remains on Hostinger. The authorized DNS cutover now points `api.salti8.com` to Azure; managed-certificate and public endpoint verification are in progress.
+- An isolated Azure staging API is live at `layer8-staging-api.niceground-f0c7cfe6.westus3.azurecontainerapps.io`. Revision `layer8-staging-api--browsercors` serves 100% of traffic from immutable image `sha-7c77566`; PostgreSQL, Redis, Blob Storage, and Service Bus readiness checks pass.
 - The scheduled Azure audit worker is deployed from the same immutable image, and manual execution `layer8-audit-worker-stcpf04` succeeded.
 - SALTI8 Development Clerk verification is configured through a Key Vault-backed public key. Staging A and B each have a separate user and map to separate active Layer8 tenants. Authenticated two-browser tenant-isolation acceptance remains open.
 - Stripe live products and the customer portal already exist: Team is $99/month,
   Business is $299/month, and portal configuration
   `bpc_1TDTW96X8IBUtLKfZd4HKkRk` is active. The live webhook destination is
-  active with all 11 required events. Its signing secret and the live API key
-  still need to be stored in Key Vault before billing can be enabled.
+  active with all 11 required events. Its signing secret and live API key are attached through Key Vault references; signed live-mode acceptance passes.
 - VirtuaPet organizations, tenant mappings, and distinct policy keys are now
   provisioned. The integration flags remain off until authenticated two-tenant
   acceptance completes.
@@ -120,6 +137,9 @@ The deployable web artifact is `apps/web/out`. Hostinger does not run a
 persistent Node.js process. Clerk authentication runs in the browser, while
 FastAPI validates Clerk session tokens and owns billing authorization at
 `https://api.salti8.com`.
+
+The current cutover checklist and remaining build-out phases are recorded in
+[`docs/STATUS_AND_REMAINING_PHASES_2026-09-17.md`](docs/STATUS_AND_REMAINING_PHASES_2026-09-17.md).
 
 The web application uses the public domain `https://salti8.com`. The API and
 signed Stripe webhook are deployed separately at `https://api.salti8.com`.

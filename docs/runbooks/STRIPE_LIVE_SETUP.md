@@ -1,5 +1,10 @@
 # Stripe live setup
 
+
+## Verified deployment update — 2026-09-17
+
+The live secret and webhook secret are stored in Key Vault and attached as Container Apps secret references. `STRIPE_LIVE_MODE=true` is active with the verified Team and Business Price IDs and portal configuration. Image `sha-7c77566` fixes Stripe SDK 15 event serialization. A fresh signed live-mode synthetic event returned HTTP 200; an unsigned request returned HTTP 400. Real Checkout, entitlement creation, cancellation, renewal, and portal lifecycle acceptance remain required.
+
 Layer8 Adaptive uses Stripe-hosted Checkout for subscriptions, the Stripe
 customer portal for self-service billing, and signed webhooks as the
 authoritative source for access changes.
