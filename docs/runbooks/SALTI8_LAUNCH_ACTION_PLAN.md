@@ -4,7 +4,7 @@
 
 Live Stripe secrets, prices, portal configuration, and the 11-event endpoint
 are attached; signed live-mode synthetic delivery passes. The authorized DNS
-cutover is published and Azure managed TLS is being verified. Authenticated
+cutover is published and Azure managed TLS is verified. Authenticated
 two-tenant Clerk acceptance, real billing lifecycle, VirtuaPet activation,
 provider inference, and alert receipt remain open. The current checklist and
 phases are in `../STATUS_AND_REMAINING_PHASES_2026-09-17.md`.

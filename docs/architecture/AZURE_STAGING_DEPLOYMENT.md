@@ -4,8 +4,8 @@
 
 The authorized cutover uses immutable image `sha-7c77566` in revision
 `layer8-staging-api--0000004`. Hostinger publishes the Azure ownership TXT and
-the `api.salti8.com` CNAME now targets Container Apps. Azure managed-certificate
-issuance and public-host acceptance are tracked in
+the `api.salti8.com` CNAME now targets Container Apps. Azure managed TLS and
+public-host acceptance pass and are tracked in
 `../STATUS_AND_REMAINING_PHASES_2026-09-17.md`.
 
 

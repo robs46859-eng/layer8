@@ -29,9 +29,7 @@ Status captured: 2026-09-17 during the authorized Azure cutover.
   verifier. Clerk remains the SALTI8 identity boundary; VirtuaPet remains on
   Microsoft Entra.
 - The authorized DNS cutover replaced the suspended Render CNAME with the
-  Azure Container Apps hostname and added Azure ownership verification. Azure
-  custom-domain and managed-certificate issuance must be verified before this
-  item is marked complete.
+  Azure Container Apps hostname and added Azure ownership verification. Azure managed TLS and public acceptance now pass.
 
 ## Activation checklist
 
@@ -45,9 +43,9 @@ Status captured: 2026-09-17 during the authorized Azure cutover.
   rejection.
 - [x] 5. Add Azure DNS ownership verification and move `api.salti8.com` from
   suspended Render to the Azure Container Apps hostname.
-- [ ] 6. Confirm the Azure managed certificate is issued, public health and
-  readiness pass through `https://api.salti8.com`, exact CORS passes, and the
-  signed Stripe probe succeeds through the public hostname.
+- [x] 6. Azure managed TLS is issued; public health, readiness, anonymous
+  denial, exact CORS, and the signed Stripe probe pass through
+  `https://api.salti8.com`.
 - [ ] 7. Complete two simultaneous authenticated Clerk sessions, prove each
   user can access only the mapped tenant, complete two Entra-backed VirtuaPet
   identity links, prove correct-tenant allow and cross-tenant denial, then

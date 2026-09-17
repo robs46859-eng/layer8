@@ -1,6 +1,6 @@
 # Azure pre-cutover runbook
 
-Status: authorized cutover started on 2026-09-17. DNS ownership and the Azure CNAME are published; Azure managed-certificate issuance and public acceptance remain in progress.
+Status: authorized cutover started on 2026-09-17. DNS ownership and the Azure CNAME are published; Azure managed TLS and public acceptance pass.
 
 ## Release candidate
 

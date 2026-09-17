@@ -5,10 +5,9 @@
 
 The authorized production API cutover is in progress. Hostinger now publishes
 the Azure ownership TXT record and points `api.salti8.com` at the Azure
-Container Apps hostname. Azure accepted the custom hostname and began issuing
-managed certificate `mc-managedenviron-api-salti8-com-2877`. Do not mark the
-cutover complete until managed TLS and the public health, readiness, CORS, and
-signed-webhook probes pass.
+Container Apps hostname. Azure issued and bound managed certificate
+`mc-managedenviron-api-salti8-com-2877`. Public TLS, health, readiness, exact
+CORS, anonymous denial, and signed live-mode webhook probes pass.
 
 Layer8 runs image `ghcr.io/robs46859-eng/layer8:sha-7c77566`. Stripe live
 secrets are attached through Key Vault references, live mode is enabled, and a

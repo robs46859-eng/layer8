@@ -5,10 +5,9 @@
 
 The authorized production API cutover is in progress. Hostinger now publishes
 the Azure ownership TXT record and points `api.salti8.com` at the Azure
-Container Apps hostname. Azure accepted the custom hostname and began issuing
-managed certificate `mc-managedenviron-api-salti8-com-2877`. Do not mark the
-cutover complete until managed TLS and the public health, readiness, CORS, and
-signed-webhook probes pass.
+Container Apps hostname. Azure issued and bound managed certificate
+`mc-managedenviron-api-salti8-com-2877`. Public TLS, health, readiness, exact
+CORS, anonymous denial, and signed live-mode webhook probes pass.
 
 Layer8 runs image `ghcr.io/robs46859-eng/layer8:sha-7c77566`. Stripe live
 secrets are attached through Key Vault references, live mode is enabled, and a
@@ -45,7 +44,7 @@ The repository combines:
 
 ### Current deployment status
 
-- The SALTI8 static site remains on Hostinger. The authorized DNS cutover now points `api.salti8.com` to Azure; managed-certificate and public endpoint verification are in progress.
+- The SALTI8 static site remains on Hostinger. The authorized DNS cutover now points `api.salti8.com` to Azure; managed TLS and public endpoint verification pass.
 - An isolated Azure staging API is live at `layer8-staging-api.niceground-f0c7cfe6.westus3.azurecontainerapps.io`. Revision `layer8-staging-api--browsercors` serves 100% of traffic from immutable image `sha-7c77566`; PostgreSQL, Redis, Blob Storage, and Service Bus readiness checks pass.
 - The scheduled Azure audit worker is deployed from the same immutable image, and manual execution `layer8-audit-worker-stcpf04` succeeded.
 - SALTI8 Development Clerk verification is configured through a Key Vault-backed public key. Staging A and B each have a separate user and map to separate active Layer8 tenants. Authenticated two-browser tenant-isolation acceptance remains open.
