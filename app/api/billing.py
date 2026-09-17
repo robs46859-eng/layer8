@@ -245,7 +245,9 @@ async def stripe_webhook(
             detail="invalid Stripe webhook signature",
         ) from exc
 
-    event_dict = event.to_dict_recursive()
+    # stripe-python 15 exposes the supported public conversion method as
+    # ``to_dict``. It recursively converts nested StripeObject values too.
+    event_dict = event.to_dict()
     if bool(event_dict.get("livemode")) != settings.stripe_live_mode:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

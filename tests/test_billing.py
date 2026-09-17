@@ -1,4 +1,6 @@
 import hashlib
+import hmac
+import json
 import os
 import time
 from datetime import UTC, datetime, timedelta
@@ -77,6 +79,42 @@ def test_billing_routes_require_admin_and_configuration(tmp_path):
 
     webhook = client.post("/v1/webhooks/stripe", content=b"{}")
     assert webhook.status_code == 503
+
+
+def test_signed_webhook_uses_current_stripe_event_conversion(tmp_path):
+    client = _build_client(tmp_path / "signed-webhook.sqlite3")
+    os.environ["STRIPE_WEBHOOK_SECRET"] = "whsec_test_signing_secret"
+    _reset_settings()
+
+    payload = json.dumps(
+        {
+            "id": "evt_conversion_1",
+            "object": "event",
+            "type": "activation.configuration.verified",
+            "livemode": False,
+            "data": {"object": {"nested": {"value": 1}}},
+        },
+        separators=(",", ":"),
+    ).encode()
+    timestamp = int(time.time())
+    signature = hmac.new(
+        b"whsec_test_signing_secret",
+        str(timestamp).encode() + b"." + payload,
+        hashlib.sha256,
+    ).hexdigest()
+
+    response = client.post(
+        "/v1/webhooks/stripe",
+        content=payload,
+        headers={"Stripe-Signature": f"t={timestamp},v1={signature}"},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "received": True,
+        "duplicate": False,
+        "event_type": "activation.configuration.verified",
+    }
 
 
 def test_subscription_webhook_sync_is_idempotent(tmp_path):
