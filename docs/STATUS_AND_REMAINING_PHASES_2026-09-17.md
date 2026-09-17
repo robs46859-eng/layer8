@@ -9,6 +9,8 @@ Status captured: 2026-09-17 during the authorized Azure cutover.
   SDK 15 compatibility fix, and GitHub Actions run `35230299072` passed.
 - PostgreSQL, Redis, Blob Storage, and Service Bus pass `/readyz`. The audit
   worker has completed the documented queue-to-Blob acceptance path.
+- The scheduled audit worker was aligned to API image `sha-7c77566`; manual
+  execution `layer8-audit-worker-0ny4srb` succeeded on 2026-09-17.
 - Stripe live mode is configured through Key Vault references. Team uses
   `price_1TyIL16X8IBUtLKflisiPVqI`, Business uses
   `price_1TyILs6X8IBUtLKf5HDS6fVs`, and portal configuration
