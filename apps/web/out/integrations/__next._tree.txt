@@ -4,4 +4,4 @@
 :HL["/_next/static/media/4f530f52d514af96-s.p.0xf8lnqelv8sb.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/_next/static/media/a083361d37caf3d1-s.p.0s4utfvp8prsy.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/_next/static/media/c6e2684784a55443-s.p.2p4adm_386h58.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
-0:{"tree":{"name":"","param":null,"prefetchHints":4112,"slots":{"children":{"name":"slug","param":{"type":"c","key":"integrations","siblings":["app","billing","sign-in","sign-up"]},"prefetchHints":4160,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}},"staleTime":300,"buildId":"2u5HxciZFnOvr0MUht5Dr"}
+0:{"tree":{"name":"","param":null,"prefetchHints":4112,"slots":{"children":{"name":"slug","param":{"type":"c","key":"integrations","siblings":["app","billing","sign-in","sign-up"]},"prefetchHints":4160,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}},"staleTime":300,"buildId":"O_GjF0eO5MW_wbLhkhheX"}
